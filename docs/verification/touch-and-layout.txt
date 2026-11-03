@@ -1,0 +1,2 @@
+System touch check PASS: entered garment text, dismissed keyboard, tapped Save, returned to collection with the saved garment.
+Captured 360 dp / 1.15 font-scale layouts.

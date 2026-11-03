@@ -1,0 +1,12 @@
+{
+  "apk": "apk/Yixu-1.0.0-debug.apk",
+  "bytes": 13057062,
+  "sha256": "5fde196f01a511a62b8b70fe46ea81536f613943d1dc37ff65865bf9829a38ff",
+  "agp": "9.3.3",
+  "android_studio": "Quail 2 / 2026.1.2 Patch 1",
+  "unit_tests": "5",
+  "unit_failures": "0",
+  "android_tests_pass": true,
+  "lint_summary": "0 errors, 19 warnings",
+  "missing_doc_links": []
+}

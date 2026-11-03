@@ -1,0 +1,11 @@
+<resources>
+    <style name="Theme.Wardrobe.Base" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">#F1F2EF</item>
+        <item name="android:navigationBarColor">#20272A</item>
+        <item name="android:windowBackground">#F1F2EF</item>
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
+    <style name="Theme.Wardrobe" parent="Theme.Wardrobe.Base" />
+</resources>

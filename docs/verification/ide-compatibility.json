@@ -1,0 +1,11 @@
+{
+  "android_studio": "Quail 2 | 2026.1.2 Patch 1",
+  "ide_build": "AI-261.25134.95.2612.15914620",
+  "source": "/Applications/Android Studio.app/Contents/lib/resources.jar!/idea/AndroidStudioApplicationInfo.xml",
+  "agp": "9.3.3",
+  "gradle": "9.6.0",
+  "jdk": "Android Studio bundled JBR 21",
+  "compile_sdk": 36,
+  "official_compatibility": "https://developer.android.com/build/releases/about-agp",
+  "agp_release_notes": "https://developer.android.com/build/releases/agp-9-3-0-release-notes"
+}

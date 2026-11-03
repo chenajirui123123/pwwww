@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.Wardrobe" parent="Theme.Wardrobe.Base">
+        <item name="android:navigationBarColor">#F1F2EF</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>
