@@ -18,7 +18,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -32,27 +31,27 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 val Ink = Color(0xFF20272A)
-val Paper = Color(0xFFF1F2EF)
-val Muted = Color(0xFF6A777B)
+val Paper = Color(0xFFEEF0ED)
+val Muted = Color(0xFF59676B)
 val Teal = Color(0xFF28C4BD)
 val Pink = Color(0xFFCE174C)
 val Lime = Color(0xFFDCEB97)
 val Line = Color(0xFFD9DFDB)
-val Panel = CutCornerShape(topEnd = 14.dp, bottomStart = 14.dp)
-val SmallPanel = CutCornerShape(topEnd = 8.dp, bottomStart = 8.dp)
+val Panel = CutCornerShape(topEnd = 12.dp, bottomStart = 4.dp)
+val SmallPanel = CutCornerShape(topEnd = 7.dp, bottomStart = 2.dp)
 
 @Composable
 fun AtelierTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme =
             lightColorScheme(
-                primary = Ink,
+                primary = DeepTeal,
                 onPrimary = Color.White,
                 secondary = Teal,
                 onSecondary = Ink,
                 tertiary = Pink,
                 background = Paper,
-                surface = Paper,
+                surface = Color.White,
                 surfaceVariant = Color(0xFFE6EAE6),
                 onSurface = Ink,
                 onSurfaceVariant = Muted,
@@ -71,18 +70,30 @@ fun AtelierTheme(content: @Composable () -> Unit) {
                         fontWeight = FontWeight.Bold,
                     ),
             ),
+        shapes =
+            Shapes(
+                extraSmall = SmallPanel,
+                small = SmallPanel,
+                medium = Panel,
+                large = Panel,
+                extraLarge = Panel,
+            ),
         content = content,
     )
 }
 
 @Composable
 fun Micro(text: String, color: Color = Muted, modifier: Modifier = Modifier) {
+    if (text.isBlank()) return
+    val latin = text.all { it.code < 128 }
     Text(
         text,
         modifier,
-        fontSize = 10.sp,
-        fontFamily = FontFamily.Monospace,
-        letterSpacing = 1.sp,
+        fontSize = if (latin) 13.sp else 11.sp,
+        lineHeight = 16.sp,
+        fontFamily = if (latin) TechnicalFont else FontFamily.SansSerif,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = if (latin) .25.sp else 0.sp,
         color = color,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
@@ -96,21 +107,23 @@ fun SectionTitle(
     action: String? = null,
     onAction: () -> Unit = {},
 ) {
-    Row(
-        Modifier.fillMaxWidth().padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.size(4.dp, 18.dp).background(Teal))
-        Spacer(Modifier.width(9.dp))
-        Text(text, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.width(10.dp))
-        Micro(code)
-        Spacer(Modifier.weight(1f))
-        if (action != null)
-            TextButton(onClick = onAction) {
-                Text(action, fontSize = 12.sp)
-                Glyph("arrow", Modifier.size(16.dp))
-            }
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(Modifier.size(3.dp, 16.dp).background(Pink))
+            Spacer(Modifier.width(8.dp))
+            Text(text, fontSize = 17.sp, fontWeight = FontWeight.Black)
+            Spacer(Modifier.width(9.dp))
+            Box(Modifier.weight(1f)) { CodeLabel(code) }
+            if (action != null)
+                TextButton(onClick = onAction, contentPadding = PaddingValues(start = 8.dp)) {
+                    Text(action, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Glyph("arrow", Modifier.size(14.dp), DeepTeal)
+                }
+        }
+        HorizontalDivider(color = Line)
     }
 }
 
@@ -126,12 +139,12 @@ fun ActionButton(
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val buttonScale by
-        animateFloatAsState(if (pressed) .98f else 1f, tween(100), label = "button-press")
+        animateFloatAsState(if (pressed) .965f else 1f, tween(110), label = "button-press")
     Button(
         onClick = onClick,
         interactionSource = interaction,
         modifier =
-            modifier.heightIn(min = 50.dp).graphicsLayer {
+            modifier.heightIn(min = 48.dp).graphicsLayer {
                 scaleX = buttonScale
                 scaleY = buttonScale
             },
@@ -140,9 +153,12 @@ fun ActionButton(
         colors =
             ButtonDefaults.buttonColors(
                 containerColor = if (secondary) Ink else Pink,
+                disabledContainerColor = Line,
+                disabledContentColor = Muted,
                 contentColor = Color.White,
             ),
-        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+        border = BorderStroke(1.dp, if (secondary) Ink else Pink.copy(alpha = .5f)),
     ) {
         if (icon != null) {
             Glyph(icon, Modifier.size(18.dp), Color.White)
@@ -154,8 +170,18 @@ fun ActionButton(
 
 @Composable
 fun IconTap(name: String, label: String, onClick: () -> Unit, tint: Color = Ink) {
-    IconButton(onClick = onClick, modifier = Modifier.semantics { contentDescription = label }) {
-        Glyph(name, Modifier.size(23.dp), tint)
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.size(48.dp).semantics { contentDescription = label },
+    ) {
+        Box(
+            Modifier.size(34.dp)
+                .background(tint.copy(alpha = .065f), SmallPanel)
+                .border(1.dp, tint.copy(alpha = .10f), SmallPanel),
+            contentAlignment = Alignment.Center,
+        ) {
+            Glyph(name, Modifier.size(20.dp), tint)
+        }
     }
 }
 
@@ -163,9 +189,9 @@ fun IconTap(name: String, label: String, onClick: () -> Unit, tint: Color = Ink)
 fun Glyph(name: String, modifier: Modifier = Modifier.size(24.dp), color: Color = Ink) {
     Canvas(modifier) {
         scale(size.width / 24f, size.height / 24f, pivot = Offset.Zero) {
-            val s = Stroke(width = 1.7f, cap = StrokeCap.Round, join = StrokeJoin.Round)
+            val s = Stroke(width = 1.8f, cap = StrokeCap.Square, join = StrokeJoin.Miter)
             fun line(x: Float, y: Float, x2: Float, y2: Float) =
-                drawLine(color, Offset(x, y), Offset(x2, y2), 1.7f, StrokeCap.Round)
+                drawLine(color, Offset(x, y), Offset(x2, y2), 1.8f, StrokeCap.Square)
             fun path(vararg pts: Float) {
                 val p = Path()
                 p.moveTo(pts[0], pts[1])
@@ -289,9 +315,15 @@ fun Glyph(name: String, modifier: Modifier = Modifier.size(24.dp), color: Color 
 
 @Composable
 fun Tag(text: String, active: Boolean = false, onClick: (() -> Unit)? = null, color: Color = Teal) {
+    val fill by
+        androidx.compose.animation.animateColorAsState(
+            if (active) Ink else Color.White.copy(alpha = .8f),
+            tween(160),
+            label = "tag-fill",
+        )
     Box(
         Modifier.clip(SmallPanel)
-            .background(if (active) color else Color.White)
+            .background(fill)
             .then(
                 if (onClick != null)
                     Modifier.heightIn(min = 48.dp)
@@ -299,16 +331,22 @@ fun Tag(text: String, active: Boolean = false, onClick: (() -> Unit)? = null, co
                         .clickable(onClick = onClick)
                 else Modifier
             )
-            .border(1.dp, if (active) color else Line, SmallPanel)
+            .border(1.dp, if (active) Ink else Line, SmallPanel)
             .padding(horizontal = 13.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text,
-            fontSize = 12.sp,
-            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-            color = Ink,
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            if (active) Box(Modifier.size(3.dp, 12.dp).background(color))
+            Text(
+                text,
+                fontSize = 12.sp,
+                fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
+                color = if (active) Color.White else Muted,
+            )
+        }
     }
 }
 
@@ -326,14 +364,18 @@ fun ChipRow(options: List<String>, selected: String, onSelect: (String) -> Unit)
 fun StatusTag(state: Care) {
     val c =
         when (state) {
-            Care.READY -> Color(0xFF167B72)
+            Care.READY -> DeepTeal
             Care.DIRTY -> Pink
-            Care.WASHING -> Color(0xFF486EA2)
+            Care.WASHING -> Color(0xFF42658E)
         }
-    Box(
-        Modifier.background(c.copy(alpha = .09f), SmallPanel)
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+    Row(
+        Modifier.background(Color.White.copy(alpha = .94f), SmallPanel)
+            .border(1.dp, c.copy(alpha = .18f), SmallPanel)
+            .padding(horizontal = 7.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
+        Box(Modifier.size(4.dp).background(c))
         Text(state.label, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = c)
     }
 }
@@ -341,71 +383,39 @@ fun StatusTag(state: Care) {
 @Composable
 fun EmptyPanel(title: String, subtitle: String, action: String? = null, onAction: () -> Unit = {}) {
     Column(
-        Modifier.fillMaxWidth().padding(vertical = 30.dp),
+        Modifier.fillMaxWidth()
+            .clip(Panel)
+            .background(Color.White.copy(alpha = .65f))
+            .registrationMarks()
+            .padding(horizontal = 20.dp, vertical = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(
-            Modifier.size(70.dp).background(Color.White, Panel),
-            contentAlignment = Alignment.Center,
-        ) {
-            Glyph("hanger", Modifier.size(34.dp), Muted)
+        Box(Modifier.size(66.dp).background(Ink, Panel), contentAlignment = Alignment.Center) {
+            Glyph("hanger", Modifier.size(32.dp), Teal)
         }
+        Micro("A LITTLE SPACE FOR SOMETHING NEW", DeepTeal)
         Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        Text(subtitle, fontSize = 13.sp, color = Muted)
+        Text(
+            subtitle,
+            fontSize = 13.sp,
+            color = Muted,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
         if (action != null) ActionButton(action, onAction)
     }
 }
 
 @Composable
 fun Hero(modifier: Modifier = Modifier, large: Boolean = false) {
-    Box(modifier.fillMaxWidth().heightIn(min = if (large) 285.dp else 182.dp).clip(Panel)) {
-        Image(
-            painterResource(R.drawable.wardrobe_hero_inclusive),
-            null,
-            Modifier.matchParentSize(),
-            contentScale = ContentScale.Crop,
-        )
-        Box(
-            Modifier.matchParentSize()
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(
-                            Color(0xFFEDF0EE).copy(alpha = .95f),
-                            Color(0xFFEDF0EE).copy(alpha = .08f),
-                        )
-                    )
-                )
-        )
-        Column(
-            Modifier.align(Alignment.CenterStart).padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Micro("PERSONAL / COLLECTION", Ink)
-            Text(
-                "穿搭有序\n每天有新意",
-                fontSize = if (large) 30.sp else 24.sp,
-                fontWeight = FontWeight.Black,
-                lineHeight = if (large) 39.sp else 33.sp,
-                color = Ink,
-            )
-            Spacer(Modifier.height(5.dp))
-            Box(Modifier.background(Teal).padding(horizontal = 8.dp, vertical = 4.dp)) {
-                Micro("YOUR DAILY EDIT", Ink)
-            }
-        }
-        Row(
-            Modifier.align(Alignment.BottomEnd).padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
-            repeat(3) {
-                Box(
-                    Modifier.size(14.dp, 3.dp)
-                        .background(if (it == 0) Pink else Ink.copy(alpha = .2f))
-                )
-            }
-        }
-    }
+    EditorialBanner(
+        "穿搭有序\n每天有新意",
+        "整理衣物，发现更多搭配。",
+        "THE DAILY EDIT",
+        R.drawable.collection_stage,
+        modifier,
+        large,
+    )
 }
 
 @Composable
@@ -435,7 +445,24 @@ fun GarmentArt(g: Garment, modifier: Modifier = Modifier) {
         Canvas(modifier.semantics { contentDescription = g.name }) {
             val hue = Color(PaletteHex[PaletteNames.indexOf(g.color).coerceAtLeast(0)])
             val light = Color(0xFFE7EBE7)
-            drawRect(light)
+            drawRect(
+                Brush.linearGradient(
+                    listOf(Color(0xFFF7F8F5), light),
+                    Offset.Zero,
+                    Offset(size.width, size.height),
+                )
+            )
+            val grid = 30.dp.toPx()
+            var x = grid
+            while (x < size.width) {
+                drawLine(Ink.copy(alpha = .035f), Offset(x, 0f), Offset(x, size.height), 1f)
+                x += grid
+            }
+            var y = grid
+            while (y < size.height) {
+                drawLine(Ink.copy(alpha = .035f), Offset(0f, y), Offset(size.width, y), 1f)
+                y += grid
+            }
             val unit = minOf(size.width, size.height) / 120f
             withTransform({
                 translate((size.width - 120 * unit) / 2, (size.height - 120 * unit) / 2)
@@ -794,17 +821,31 @@ fun GarmentArt(g: Garment, modifier: Modifier = Modifier) {
 
 @Composable
 fun GarmentCard(g: Garment, count: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.clip(Panel).background(Color.White).clickable(onClick = onClick)) {
+    Column(
+        modifier
+            .clip(Panel)
+            .background(Color.White)
+            .border(1.dp, Line.copy(alpha = .7f), Panel)
+            .clickable(onClick = onClick)
+    ) {
         Box {
-            GarmentArt(g, Modifier.fillMaxWidth().aspectRatio(1.04f))
-            Box(Modifier.align(Alignment.TopStart).padding(9.dp)) { StatusTag(g.care) }
-            Micro(
-                "${g.id.toString().padStart(3,'0')}",
-                Ink.copy(alpha = .5f),
+            GarmentArt(g, Modifier.fillMaxWidth().aspectRatio(1.12f))
+            Box(Modifier.matchParentSize().registrationMarks())
+            Box(Modifier.align(Alignment.TopStart).padding(8.dp)) { StatusTag(g.care) }
+            Row(
                 Modifier.align(Alignment.BottomEnd).padding(8.dp),
-            )
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                Micro("NO.", Muted)
+                Spacer(Modifier.width(3.dp))
+                Numeral(
+                    g.id.toString().padStart(3, '0'),
+                    size = 24.sp,
+                    color = Ink.copy(alpha = .48f),
+                )
+            }
         }
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
             Text(
                 g.name,
                 fontWeight = FontWeight.Bold,
@@ -812,10 +853,20 @@ fun GarmentCard(g: Garment, count: Int, onClick: () -> Unit, modifier: Modifier 
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Row {
-                Text("${g.category} / ${g.season}", fontSize = 11.sp, color = Muted)
-                Spacer(Modifier.weight(1f))
-                Text("${count}次", fontSize = 11.sp, color = Muted)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "${g.category} · ${g.season}",
+                    Modifier.weight(1f),
+                    fontSize = 10.sp,
+                    color = Muted,
+                )
+                Text(
+                    "${count}次",
+                    fontSize = 11.sp,
+                    fontFamily = TechnicalFont,
+                    fontWeight = FontWeight.SemiBold,
+                    color = DeepTeal,
+                )
             }
         }
     }

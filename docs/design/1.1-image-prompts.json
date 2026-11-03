@@ -1,0 +1,20 @@
+{
+  "generator": "built-in image_gen",
+  "assets": [
+    {
+      "key": "collection",
+      "prompt": "Use case: stylized-concept. Asset type: final background artwork for an Android wardrobe app hero, wide landscape 1536x1024. A precise contemporary clothing exhibition miniature, cool off-white studio, pale concrete stepped rectangular plinths, translucent turquoise acrylic vertical frames, one thin raspberry red ribbon sweeping behind the scene. Right half only: a beautifully tailored dark navy men's blazer on a minimal hanger, an ivory collared shirt, a flowing pale blue women's dress, folded trousers, a single pair of minimalist sneakers, understated cream handbag. Garments have credible tailored fabric detail, not toy plastic. Three-quarter architectural view, soft contact shadows, restrained premium editorial 3D art direction, no game characters. Left 50 percent and top quarter are completely quiet uninterrupted off-white #EEF1EE negative space for native UI copy; all meaningful objects concentrated in right half and fully in frame. Small restrained turquoise and red accents. Elegant structured geometries, luminous soft daylight, refined materials. No text, no letters, no logos, no watermark, no embedded UI, no extra clutter. Main use will crop to a horizontal 2.2:1 panel, so keep subject in the central vertical 65 percent.",
+      "path": "app/src/main/res/drawable-nodpi/collection_stage.png"
+    },
+    {
+      "key": "studio",
+      "prompt": "Use case: stylized-concept. Asset type: standalone final background artwork for the outfit studio banner in a polished Android clothing management app. Landscape 1536x1024. A tactile fashion styling composition on a cool white #EEF1EE tabletop, viewed three-quarter from above. Occupy right half with two overlapping floating matte ivory rectangular editorial boards. One board holds a neatly composed men's outfit of navy tailored jacket and light shirt, a second board a women's raspberry midi dress and cream handbag. Include a tiny turquoise acrylic color swatch, restrained brushed-metal clipping bars, pale slate sneakers. No humans, no full body mannequins. Delicate realistic cloth, controlled architectural lighting, soft long shadows, structured minimalist museum catalog, premium 3D rendering, teal clear acrylic edges, charcoal details, tasteful raspberry accents. Left half and top quarter empty off-white space for app-native labels. Subject concentrated central vertical 65 percent for a 2.2:1 wide crop. No letters, no text, no numbers, no logos, no watermarks, no UI screenshot.",
+      "path": "app/src/main/res/drawable-nodpi/studio_stage.png"
+    },
+    {
+      "key": "care",
+      "prompt": "Use case: stylized-concept. Asset type: final background illustration for a garment care dashboard in an Android wardrobe app. Landscape 1536x1024. Refined tiny garment-care still life on cool pearl-white #EEF1EE ground. Right half only: an elegant translucent turquoise open cylindrical laundry vessel with an ivory folded shirt draped over its rim, two neatly stacked pale blue knitwear folds beside it, one subtle translucent water-drop sculpture suspended behind, a tiny raspberry fabric care tag without writing. Beautiful believable textile textures, pale concrete rectangular display plinth, soft ambient occlusion and editorial museum lighting, restrained luxury 3D illustration. Matching futuristic graphic UI palette turquoise teal, off-white, graphite, raspberry red; no saturated neon, no cute cartoon, no human figures. Left half and top quarter are quiet empty off-white for native UI text. Objects fully visible, centered in middle 65 percent vertically for horizontal crop. No text, no logos, no buttons, no watermark.",
+      "path": "app/src/main/res/drawable-nodpi/care_stage.png"
+    }
+  ]
+}

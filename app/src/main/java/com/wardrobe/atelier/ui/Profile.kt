@@ -38,7 +38,10 @@ fun ProfileScreen(
         ) {
             item {
                 Row(
-                    Modifier.fillMaxWidth().background(Ink, Panel).padding(22.dp),
+                    Modifier.fillMaxWidth()
+                        .background(Ink, Panel)
+                        .registrationMarks(Teal.copy(alpha = .35f))
+                        .padding(22.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
@@ -80,7 +83,7 @@ fun ProfileScreen(
                     Modifier.background(Color.White, Panel).padding(18.dp),
                     verticalArrangement = Arrangement.spacedBy(9.dp),
                 ) {
-                    Micro("ABOUT / 衣序 1.0.0")
+                    Micro("ABOUT / 衣序 1.1.0")
                     Text("让衣物有归处，让穿搭有灵感。", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Text(
                         "本机离线版：无需联网，照片存储在应用私有目录，不申请整个相册的读取权限。不同账号的数据彼此独立。",
@@ -106,7 +109,7 @@ fun ProfileScreen(
             shape = Panel,
             title = { Text("修改昵称") },
             text = {
-                OutlinedTextField(
+                AtelierTextField(
                     nick,
                     { nick = it.take(20) },
                     singleLine = true,
@@ -134,14 +137,14 @@ fun ProfileScreen(
             title = { Text("修改密码") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
+                    AtelierTextField(
                         oldPass,
                         { oldPass = it },
                         singleLine = true,
                         label = { Text("原密码") },
                         visualTransformation = PasswordVisualTransformation(),
                     )
-                    OutlinedTextField(
+                    AtelierTextField(
                         newPass,
                         { newPass = it },
                         singleLine = true,
@@ -193,11 +196,17 @@ fun ProfileRow(icon: String, title: String, subtitle: String, onClick: () -> Uni
     Row(
         Modifier.fillMaxWidth()
             .background(Color.White, SmallPanel)
+            .border(1.dp, Line, SmallPanel)
             .clickable(onClick = onClick)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Glyph(icon, Modifier.size(25.dp))
+        Box(
+            Modifier.size(42.dp).background(Paper, SmallPanel),
+            contentAlignment = Alignment.Center,
+        ) {
+            Glyph(icon, Modifier.size(23.dp), DeepTeal)
+        }
         Spacer(Modifier.width(15.dp))
         Column(Modifier.weight(1f)) {
             Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold)
@@ -224,7 +233,7 @@ fun LocationScreen(data: Wardrobe, vm: WardrobeViewModel, onBack: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    OutlinedTextField(
+                    AtelierTextField(
                         value,
                         { value = it.take(40) },
                         label = { Text("新位置名称") },
@@ -270,7 +279,7 @@ fun LocationScreen(data: Wardrobe, vm: WardrobeViewModel, onBack: () -> Unit) {
             onDismissRequest = { editing = null },
             shape = Panel,
             title = { Text("重命名位置") },
-            text = { OutlinedTextField(editValue, { editValue = it.take(40) }, singleLine = true) },
+            text = { AtelierTextField(editValue, { editValue = it.take(40) }, singleLine = true) },
             dismissButton = { TextButton(onClick = { editing = null }) { Text("取消") } },
             confirmButton = {
                 TextButton(

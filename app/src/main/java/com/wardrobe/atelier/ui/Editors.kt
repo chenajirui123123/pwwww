@@ -105,15 +105,26 @@ private fun Missing(onBack: () -> Unit) {
 
 @Composable
 fun DetailTop(title: String, onBack: () -> Unit, code: String = "WARDROBE / RECORD") {
-    Row(
-        Modifier.fillMaxWidth().padding(start = 8.dp, end = 20.dp, top = 8.dp, bottom = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconTap("back", "返回", onBack)
-        Column(Modifier.weight(1f)) {
-            Text(title, fontSize = 21.sp, fontWeight = FontWeight.Black)
-            Micro(code, modifier = Modifier.padding(top = 4.dp))
+    Column(Modifier.fillMaxWidth().background(Paper)) {
+        Row(
+            Modifier.fillMaxWidth().padding(start = 8.dp, end = 20.dp, top = 4.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconTap("back", "返回", onBack)
+            Spacer(Modifier.width(6.dp))
+            Column(Modifier.weight(1f)) {
+                Micro(code, DeepTeal)
+                Text(
+                    title,
+                    fontSize = 23.sp,
+                    lineHeight = 31.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = (-.5).sp,
+                )
+            }
+            Slashes(color = Ink.copy(alpha = .25f))
         }
+        HorizontalDivider(Modifier.padding(horizontal = 20.dp), color = Line)
     }
 }
 
@@ -136,13 +147,13 @@ private fun EditorFrame(
     }
     BackHandler { back() }
     Column(Modifier.fillMaxSize().imePadding()) {
-        DetailTop(title, back, "EDITOR / LOCAL STORAGE")
+        DetailTop(title, back, "WARDROBE / EDITOR")
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             content = content,
         )
-        Box(Modifier.fillMaxWidth().background(Paper).padding(16.dp)) {
+        Box(Modifier.fillMaxWidth().background(Color.White).border(1.dp, Line).padding(16.dp)) {
             ActionButton(
                 if (busy) "正在保存…" else saveLabel,
                 {
@@ -170,7 +181,7 @@ private fun Field(
     single: Boolean = true,
     numeric: Boolean = false,
 ) {
-    OutlinedTextField(
+    AtelierTextField(
         value,
         onChange,
         modifier = Modifier.fillMaxWidth(),
@@ -188,7 +199,7 @@ private fun Label(text: String, code: String = "") {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(text, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.width(10.dp))
-        Micro(code)
+        CodeLabel(code)
     }
 }
 

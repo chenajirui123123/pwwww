@@ -26,6 +26,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.wardrobe.atelier.*
+import com.wardrobe.atelier.R
 import com.wardrobe.atelier.domain.*
 import java.time.LocalDate
 import java.time.YearMonth
@@ -72,45 +73,10 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                     topBar = { if (route.isEmpty()) BrandBar { route = "profile" } },
                     bottomBar = {
                         if (route.isEmpty())
-                            NavigationBar(
-                                containerColor = Ink,
-                                contentColor = Color.White,
-                                tonalElevation = 0.dp,
-                            ) {
-                                val labels = listOf("衣橱", "搭配", "日历", "洗护", "统计")
-                                val icons = listOf("hanger", "outfit", "calendar", "care", "stats")
-                                labels.forEachIndexed { i, label ->
-                                    NavigationBarItem(
-                                        selected = tab == i,
-                                        onClick = {
-                                            haptic.performHapticFeedback(
-                                                HapticFeedbackType.TextHandleMove
-                                            )
-                                            tab = i
-                                        },
-                                        icon = {
-                                            Glyph(
-                                                icons[i],
-                                                Modifier.size(22.dp),
-                                                if (tab == i) Ink else Color(0xFFB3BFBD),
-                                            )
-                                        },
-                                        label = {
-                                            Text(
-                                                label,
-                                                fontSize = 11.sp,
-                                                fontWeight =
-                                                    if (tab == i) FontWeight.Bold
-                                                    else FontWeight.Normal,
-                                            )
-                                        },
-                                        colors =
-                                            NavigationBarItemDefaults.colors(
-                                                indicatorColor = Teal,
-                                                selectedTextColor = Teal,
-                                                unselectedTextColor = Color(0xFFB3BFBD),
-                                            ),
-                                    )
+                            AtelierNavigation(tab) { next ->
+                                if (next != tab) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    tab = next
                                 }
                             }
                     },
@@ -120,12 +86,25 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                         AnimatedContent(
                             targetState = if (route.isEmpty()) "tab/$tab" else route,
                             transitionSpec = {
-                                (fadeIn(tween(220)) +
-                                    slideInHorizontally(tween(260, easing = FastOutSlowInEasing)) {
-                                        it / 12
-                                    }) togetherWith
-                                    (fadeOut(tween(120)) +
-                                        slideOutHorizontally(tween(180)) { -it / 20 })
+                                val fromTab = initialState.substringAfter("tab/", "").toIntOrNull()
+                                val toTab = targetState.substringAfter("tab/", "").toIntOrNull()
+                                val direction =
+                                    if (fromTab != null && toTab != null) {
+                                        if (toTab > fromTab) 1 else -1
+                                    } else if (toTab != null) -1 else 1
+                                ((fadeIn(tween(230, delayMillis = 35)) +
+                                        slideInHorizontally(
+                                            tween(300, easing = FastOutSlowInEasing)
+                                        ) {
+                                            direction * it / 9
+                                        }) togetherWith
+                                        (fadeOut(tween(130)) +
+                                            slideOutHorizontally(
+                                                tween(220, easing = FastOutSlowInEasing)
+                                            ) {
+                                                -direction * it / 14
+                                            }))
+                                    .using(SizeTransform(clip = false))
                             },
                             label = "page-transition",
                         ) { destination ->
@@ -164,26 +143,24 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
 
 @Composable
 private fun BrandBar(onProfile: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth()
-            .statusBarsPadding()
-            .padding(start = 20.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.size(38.dp).background(Ink, SmallPanel), contentAlignment = Alignment.Center) {
-            Glyph("hanger", Modifier.size(24.dp), Teal)
+    Column(Modifier.fillMaxWidth().background(Paper).statusBarsPadding()) {
+        Row(
+            Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 3.dp, bottom = 3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(Modifier.size(35.dp).background(Ink, Panel), contentAlignment = Alignment.Center) {
+                Glyph("hanger", Modifier.size(23.dp), Teal)
+            }
+            Spacer(Modifier.width(9.dp))
+            Text("衣序", fontSize = 21.sp, fontWeight = FontWeight.Black, letterSpacing = (-.6).sp)
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Micro("YIXU / WARDROBE", Ink)
+                Micro("PERSONAL COLLECTION", Muted)
+            }
+            IconTap("user", "个人中心", onProfile)
         }
-        Spacer(Modifier.width(10.dp))
-        Column {
-            Text("衣序", fontSize = 20.sp, fontWeight = FontWeight.Black)
-            Micro("WARDROBE SYSTEM", modifier = Modifier.padding(top = 1.dp))
-        }
-        Spacer(Modifier.weight(1f))
-        Box(Modifier.size(5.dp).background(Teal, CircleShape))
-        Spacer(Modifier.width(5.dp))
-        Micro("LOCAL")
-        Spacer(Modifier.width(8.dp))
-        IconTap("user", "个人中心", onProfile)
+        HorizontalDivider(Modifier.padding(horizontal = 20.dp), color = Line)
     }
 }
 
@@ -207,20 +184,19 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
             Spacer(Modifier.width(10.dp))
             Text("衣序", fontWeight = FontWeight.Black, fontSize = 24.sp)
             Spacer(Modifier.weight(1f))
-            Micro("WARDROBE / 01", Ink)
+            Numeral("01", size = 32.sp, color = DeepTeal)
         }
         Hero(large = true)
-        Row(verticalAlignment = Alignment.Bottom) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 if (register) "建立你的衣橱" else "欢迎回到衣序",
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Black,
             )
-            Spacer(Modifier.weight(1f))
-            Micro("OFFLINE EDITION")
+            Micro("PERSONAL WARDROBE / OFFLINE EDITION", DeepTeal)
         }
         Text("从一件衣物开始，整理属于你的日常。", color = Muted, fontSize = 13.sp)
-        OutlinedTextField(
+        AtelierTextField(
             username,
             { username = it },
             label = { Text("账号") },
@@ -230,7 +206,7 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
             shape = SmallPanel,
         )
         if (register)
-            OutlinedTextField(
+            AtelierTextField(
                 nickname,
                 { nickname = it },
                 label = { Text("昵称") },
@@ -238,7 +214,7 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
                 modifier = Modifier.fillMaxWidth(),
                 shape = SmallPanel,
             )
-        OutlinedTextField(
+        AtelierTextField(
             password,
             { password = it },
             label = { Text("密码") },
@@ -284,14 +260,7 @@ private fun PageHeading(
     action: String? = null,
     onAction: () -> Unit = {},
 ) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Micro(code)
-            Spacer(Modifier.height(5.dp))
-            Text(title, fontSize = 29.sp, fontWeight = FontWeight.Black, letterSpacing = (-1).sp)
-        }
-        if (action != null) ActionButton(action, onAction, icon = "plus")
-    }
+    ModuleHeading(title, code, action, onAction)
 }
 
 @Composable
@@ -322,31 +291,17 @@ fun ClosetScreen(data: Wardrobe, navigate: (String) -> Unit) {
         item { PageHeading("我的衣橱", "01 / COLLECTION", "录入衣物") { navigate("garment/0") } }
         item { Hero() }
         item {
-            Row(
-                Modifier.fillMaxWidth().background(Ink, SmallPanel).padding(vertical = 14.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-            ) {
+            CollectionMetrics(
                 listOf(
-                        data.active.size to "衣物收藏",
-                        data.active.count { it.care == Care.READY } to "随时可穿",
-                        data.outfits.size to "灵感搭配",
-                    )
-                    .forEachIndexed { i, (n, t) ->
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                n.toString().padStart(2, '0'),
-                                fontSize = 23.sp,
-                                fontWeight = FontWeight.Black,
-                                color = if (i == 1) Teal else Color.White,
-                            )
-                            Text(t, fontSize = 11.sp, color = Color(0xFFB9C4C0))
-                        }
-                    }
-            }
+                    data.active.size to "衣物\n收藏",
+                    data.active.count { it.care == Care.READY } to "随时\n可穿",
+                    data.outfits.size to "灵感\n搭配",
+                )
+            )
         }
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
+                AtelierTextField(
                     search,
                     { search = it },
                     placeholder = { Text("搜索衣物、品牌或位置", fontSize = 13.sp) },
@@ -386,9 +341,8 @@ fun ClosetScreen(data: Wardrobe, navigate: (String) -> Unit) {
             }
         item {
             Row {
-                Micro(
-                    if (archived) "ARCHIVED / ${filtered.size} ITEMS"
-                    else "COLLECTION / ${filtered.size} ITEMS"
+                CodeLabel(
+                    "${filtered.size} " + if (archived) "ARCHIVED ITEMS" else "COLLECTION ITEMS"
                 )
                 Spacer(Modifier.weight(1f))
                 Micro("按录入时间 ↓")
@@ -423,15 +377,26 @@ fun ClosetScreen(data: Wardrobe, navigate: (String) -> Unit) {
 
 @Composable
 fun OutfitMontage(items: List<Garment>, modifier: Modifier = Modifier) {
-    Row(
-        modifier.background(Color(0xFFE4E8E4)),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        items.take(3).forEach { GarmentArt(it, Modifier.weight(1f).fillMaxHeight()) }
-        if (items.isEmpty())
+    Row(modifier.background(Color.White), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+        if (items.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Glyph("outfit", Modifier.size(40.dp), Muted)
             }
+        } else {
+            GarmentArt(
+                items.first(),
+                Modifier.weight(if (items.size > 1) 1.4f else 1f).fillMaxHeight(),
+            )
+            if (items.size > 1)
+                Column(
+                    Modifier.weight(1f).fillMaxHeight(),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    items.drop(1).take(2).forEach {
+                        GarmentArt(it, Modifier.fillMaxWidth().weight(1f))
+                    }
+                }
+        }
     }
 }
 
@@ -445,26 +410,39 @@ fun OutfitsScreen(data: Wardrobe, navigate: (String) -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { PageHeading("搭配实验室", "02 / OUTFIT STUDIO", "新建搭配") { navigate("outfit/0") } }
-        item { Text("熟悉的衣物，也有新的组合。", color = Muted, fontSize = 13.sp) }
+        item {
+            EditorialBanner(
+                "熟悉的衣物\n新的组合",
+                "每一套搭配，都是你的灵感。",
+                "COMPOSE YOUR LOOK",
+                R.drawable.studio_stage,
+            )
+        }
         item { ChipRow(listOf("全部", "日常", "通勤", "休闲", "运动", "约会"), filter) { filter = it } }
         if (outfits.isEmpty())
             item { EmptyPanel("留住你的穿搭灵感", "从衣橱中挑选衣物，组成自己的搭配", "创建搭配") { navigate("outfit/0") } }
         items(outfits, key = { it.id }) { o ->
             Column(
-                Modifier.fillMaxWidth().clip(Panel).background(Color.White).clickable {
-                    navigate("outfitdetail/${o.id}")
-                }
+                Modifier.fillMaxWidth()
+                    .clip(Panel)
+                    .background(Color.White)
+                    .border(1.dp, Line, Panel)
+                    .clickable { navigate("outfitdetail/${o.id}") }
             ) {
                 Box {
-                    OutfitMontage(data.pieces(o.items), Modifier.fillMaxWidth().height(170.dp))
+                    OutfitMontage(data.pieces(o.items), Modifier.fillMaxWidth().height(176.dp))
+                    Box(Modifier.matchParentSize().registrationMarks())
                     Box(Modifier.align(Alignment.TopStart).padding(12.dp)) {
                         Tag(o.occasion, active = true, color = Teal)
                     }
-                    Micro(
-                        "LOOK ${o.id.toString().padStart(2,'0')}",
-                        Ink,
+                    Row(
                         Modifier.align(Alignment.BottomEnd).padding(12.dp),
-                    )
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        Micro("LOOK", Ink)
+                        Spacer(Modifier.width(4.dp))
+                        Numeral(o.id.toString().padStart(2, '0'), size = 32.sp)
+                    }
                 }
                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
@@ -499,15 +477,19 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
     ) {
         item { PageHeading("穿搭日历", "03 / DAILY PLANNER", "安排计划") { navigate("plan/0/$date") } }
         item {
-            Column(Modifier.background(Color.White, Panel).padding(14.dp)) {
+            Column(
+                Modifier.background(Color.White, Panel).border(1.dp, Line, Panel).padding(14.dp)
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconTap("back", "上个月", { monthText = month.minusMonths(1).toString() })
-                    Text(
-                        "${month.year} 年 ${month.monthValue} 月",
-                        Modifier.weight(1f),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                    )
+                    Column(Modifier.weight(1f)) {
+                        Micro("${month.year} / CALENDAR")
+                        Text(
+                            "${month.monthValue} 月",
+                            fontWeight = FontWeight.Black,
+                            fontSize = 23.sp,
+                        )
+                    }
                     TextButton(
                         onClick = {
                             monthText = YearMonth.now().toString()
@@ -549,6 +531,7 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(
                                             day.toString(),
+                                            fontFamily = TechnicalFont,
                                             fontWeight =
                                                 if (d == date || d == LocalDate.now().toString())
                                                     FontWeight.Bold
@@ -557,7 +540,7 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
                                                 if (d == date) Color.White
                                                 else if (d == LocalDate.now().toString()) Pink
                                                 else Ink,
-                                            fontSize = 15.sp,
+                                            fontSize = 20.sp,
                                         )
                                         Row(
                                             Modifier.height(7.dp),
@@ -580,7 +563,21 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
                     }
                 }
                 Spacer(Modifier.height(8.dp))
-                Micro("● 青绿 / 计划     ● 莓红 / 实际穿着")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(5.dp).background(DeepTeal, CircleShape))
+                        Spacer(Modifier.width(5.dp))
+                        Text("计划", fontSize = 11.sp, color = Muted)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(5.dp).background(Pink, CircleShape))
+                        Spacer(Modifier.width(5.dp))
+                        Text("实际穿着", fontSize = 11.sp, color = Muted)
+                    }
+                }
             }
         }
         item {
@@ -692,37 +689,19 @@ fun CareScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewModel
     ) {
         item { PageHeading("洗护工作台", "04 / CARE STATION") }
         item {
-            Row(
-                Modifier.fillMaxWidth().clip(Panel).background(Ink).padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Glyph("care", Modifier.size(44.dp), Teal)
-                Spacer(Modifier.width(16.dp))
-                Column {
-                    Text(
-                        "照顾衣物，也照顾日常",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        "${data.active.count{it.care!=Care.READY}} 件衣物等待你的照料",
-                        color = Color(0xFFB8C9C6),
-                        fontSize = 12.sp,
-                    )
-                }
-            }
+            EditorialBanner(
+                "照顾衣物\n照顾日常",
+                "${data.active.count { it.care != Care.READY }} 件衣物等待照料",
+                "CARE & RENEW",
+                R.drawable.care_stage,
+            )
         }
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Care.entries.forEach { c ->
-                    Tag(
-                        "${c.label} ${data.active.count{it.care==c}}",
-                        c == state,
-                        { selected = c.name },
-                    )
-                }
+            ChipRow(
+                Care.entries.map { "${it.label} ${data.active.count { g -> g.care == it }}" },
+                "${state.label} ${data.active.count { it.care == state }}",
+            ) { label ->
+                selected = Care.entries.first { label.startsWith(it.label) }.name
             }
         }
         item {
@@ -804,38 +783,24 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
         item { ChipRow(listOf("近30天", "全部时间"), period) { period = it } }
         item {
             Row(
-                Modifier.fillMaxWidth().background(Ink, Panel).padding(20.dp),
+                Modifier.fillMaxWidth()
+                    .clip(Panel)
+                    .background(Ink)
+                    .registrationMarks(Color.White.copy(alpha = .16f))
+                    .padding(20.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.size(108.dp), contentAlignment = Alignment.Center) {
-                    val progress by
-                        animateFloatAsState(percentage / 100f, tween(600), label = "usage")
-                    CircularProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier.fillMaxSize(),
-                        strokeWidth = 7.dp,
-                        color = Teal,
-                        trackColor = Color(0xFF414A4C),
-                    )
+                    UtilizationRing(percentage / 100f, Modifier.fillMaxSize())
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            "$percentage%",
-                            fontSize = 27.sp,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                        )
+                        Numeral("$percentage%", size = 34.sp, color = Color.White)
                         Micro("UTILIZATION", Teal)
                     }
                 }
                 Spacer(Modifier.width(24.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     Micro("衣橱使用率", Color(0xFFBBC9C5))
-                    Text(
-                        "$worn / ${active.size}",
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                    )
+                    Numeral("$worn / ${active.size}", size = 38.sp, color = Color.White)
                     Text("${period}穿过的在用衣物", color = Color(0xFFBBC9C5), fontSize = 11.sp)
                 }
             }
@@ -852,7 +817,7 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
                             Modifier.weight(1f).background(Color.White, SmallPanel).padding(14.dp)
                         ) {
                             Micro(t)
-                            Text(n, fontWeight = FontWeight.Black, fontSize = 26.sp)
+                            Numeral(n, size = 34.sp)
                         }
                     }
             }
@@ -867,13 +832,17 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
                     val n = active.count { it.category == c }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(c, fontSize = 12.sp, modifier = Modifier.width(52.dp))
-                        LinearProgressIndicator(
-                            progress = { if (active.isEmpty()) 0f else n.toFloat() / active.size },
-                            modifier = Modifier.weight(1f).height(6.dp),
-                            color = Teal,
-                            trackColor = Paper,
+                        RatioBar(
+                            if (active.isEmpty()) 0f else n.toFloat() / active.size,
+                            Modifier.weight(1f).height(6.dp),
                         )
-                        Text(n.toString(), Modifier.width(30.dp), fontSize = 12.sp)
+                        Text(
+                            n.toString(),
+                            Modifier.width(30.dp).padding(start = 10.dp),
+                            fontFamily = TechnicalFont,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
                     }
                 }
                 Text("类别和使用率仅统计未归档衣物。", fontSize = 11.sp, color = Muted)
@@ -893,7 +862,7 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
                 GarmentArt(g, Modifier.size(54.dp))
                 Spacer(Modifier.width(12.dp))
                 Text(g.name, Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                Text("$n", fontSize = 24.sp, fontWeight = FontWeight.Black, color = Pink)
+                Numeral("$n", size = 30.sp, color = Pink)
                 Text(" 次", fontSize = 12.sp, color = Muted)
             }
         }

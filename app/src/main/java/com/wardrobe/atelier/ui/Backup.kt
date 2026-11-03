@@ -50,7 +50,7 @@ fun BackupPanel(vm: WardrobeViewModel, state: AppState) {
                         if (mode == "export") "至少 8 位。请记住口令，恢复时需要输入；账号密码不会写入备份。"
                         else "恢复会替换当前账号的全部衣物、搭配和历史。其他账号不受影响。建议先导出当前数据备份。"
                     )
-                    OutlinedTextField(
+                    AtelierTextField(
                         pass,
                         { pass = it },
                         singleLine = true,
