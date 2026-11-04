@@ -75,7 +75,7 @@ fun ProfileScreen(
             item { ProfileRow("clock", "穿着历史", "查看、修正与撤销实际记录") { navigate("history") } }
             item { ProfileRow("care", "洗护历史", "每一次状态变化都有记录") { navigate("carehistory") } }
             item { ProfileRow("archive", "收纳位置", "管理衣柜、鞋架与收纳空间") { navigate("locations") } }
-            if (account.username != "wardrobe_demo")
+            if (account.username !in setOf("wardrobe_demo", "wardrobe_local"))
                 item { ProfileRow("user", "修改密码", "保护本机账号") { passwordDialog = true } }
             item { BackupPanel(vm, state) }
             item {
@@ -83,10 +83,10 @@ fun ProfileScreen(
                     Modifier.background(Color.White, Panel).padding(18.dp),
                     verticalArrangement = Arrangement.spacedBy(9.dp),
                 ) {
-                    Micro("ABOUT / 衣序 1.1.0")
+                    Micro("ABOUT / 衣序轻量版 2.0")
                     Text("让衣物有归处，让穿搭有灵感。", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Text(
-                        "本机离线版：无需联网，照片存储在应用私有目录，不申请整个相册的读取权限。不同账号的数据彼此独立。",
+                        "本机离线保存。无需每天维护洗护或穿着状态；找衣与搭配不依赖这些记录。不同账号的数据彼此独立。",
                         color = Muted,
                         fontSize = 12.sp,
                     )

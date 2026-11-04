@@ -203,6 +203,17 @@ fun Glyph(name: String, modifier: Modifier = Modifier.size(24.dp), color: Color 
                 drawPath(p, color, style = s)
             }
             when (name) {
+                "lock" -> {
+                    drawRoundRect(
+                        color,
+                        Offset(5f, 10f),
+                        Size(14f, 11f),
+                        androidx.compose.ui.geometry.CornerRadius(1f),
+                        style = s,
+                    )
+                    drawArc(color, 180f, 180f, false, Offset(8f, 3f), Size(8f, 13f), style = s)
+                    line(12f, 14f, 12f, 17f)
+                }
                 "hanger" -> {
                     drawArc(color, 180f, 260f, false, Offset(9f, 2f), Size(6f, 6f), style = s)
                     path(12f, 8f, 12f, 10f, 2f, 17f, 2f, 19f, 22f, 19f, 22f, 17f, 12f, 10f)
@@ -272,6 +283,10 @@ fun Glyph(name: String, modifier: Modifier = Modifier.size(24.dp), color: Color 
                 "plus" -> {
                     line(12f, 4f, 12f, 20f)
                     line(4f, 12f, 20f, 12f)
+                }
+                "refresh" -> {
+                    drawArc(color, 35f, 280f, false, Offset(4f, 4f), Size(16f, 16f), style = s)
+                    path(19f, 3f, 19f, 9f, 13f, 9f)
                 }
                 "search" -> {
                     drawCircle(color, 6f, Offset(10f, 10f), style = s)

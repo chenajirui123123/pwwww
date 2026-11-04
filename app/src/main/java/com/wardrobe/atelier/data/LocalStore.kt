@@ -120,8 +120,42 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
     }
 
     fun register(username: String, pass: String, nickname: String): Account {
-        require(username.trim().lowercase() != "wardrobe_demo") { "此账号名称为示例衣橱保留，请选择其他名称" }
+        require(username.trim().lowercase() !in setOf("wardrobe_demo", "wardrobe_local")) {
+            "此账号名称为内置衣橱保留，请选择其他名称"
+        }
         return createAccount(username, pass, nickname)
+    }
+
+    /** A local space is deliberately password-free; password-protected accounts stay separate. */
+    fun openLocalWardrobe(): Account {
+        val id =
+            query("accounts", "username=?", arrayOf("wardrobe_local")) { it.l("id") }.firstOrNull()
+        if (id != null) signIn(id)
+        else createAccount("wardrobe_local", UUID.randomUUID().toString(), "我的本机衣橱")
+        return account()!!
+    }
+
+    fun saveQuickGarment(g: Garment): Long {
+        val title =
+            g.name.trim().ifBlank {
+                (if (g.color == "其他") "" else g.color) + g.style.ifBlank { g.category }
+            }
+        return saveGarment(g.copy(name = title, location = g.location.trim().ifBlank { "待放置" }))
+    }
+
+    fun moveGarments(ids: List<Long>, location: String) {
+        require(ids.isNotEmpty() && ids.size == ids.distinct().size) { "请选择需要移动的衣物" }
+        require(location.trim().length in 1..40) { "位置名称应为 1–40 个字" }
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            ids.forEach { requireOwned("garments", it) }
+            addLocation(location)
+            ids.forEach { save("garments", it, values("location" to location.trim())) }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 
     private fun createAccount(username: String, pass: String, nickname: String): Account {

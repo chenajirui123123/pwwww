@@ -40,15 +40,16 @@ fun DetailRouter(
     val data = state.data
     when (parts[0]) {
         "garment" ->
-            GarmentEditor(data.garments.find { it.id == id } ?: Garment(), state, vm, onBack)
+            QuickGarmentEditor(data.garments.find { it.id == id } ?: Garment(), state, vm, onBack)
         "detail" ->
             data.garments
                 .find { it.id == id }
-                ?.let { GarmentDetail(it, data, vm, onBack, navigate) } ?: Missing(onBack)
+                ?.let { LightGarmentDetail(it, data, vm, onBack, navigate) } ?: Missing(onBack)
         "outfit" -> OutfitEditor(data.outfits.find { it.id == id } ?: Outfit(), state, vm, onBack)
         "outfitdetail" ->
-            data.outfits.find { it.id == id }?.let { OutfitDetail(it, data, vm, onBack, navigate) }
-                ?: Missing(onBack)
+            data.outfits
+                .find { it.id == id }
+                ?.let { LightOutfitDetail(it, data, vm, onBack, navigate) } ?: Missing(onBack)
         "plan" ->
             PlanEditor(data.plans.find { it.id == id } ?: Plan(date = date), state, vm, onBack)
         "planoutfit" ->
@@ -87,6 +88,22 @@ fun DetailRouter(
                         onBack,
                     )
                 } ?: Missing(onBack)
+        "legacydetail" ->
+            data.garments
+                .find { it.id == id }
+                ?.let { GarmentDetail(it, data, vm, onBack, navigate) } ?: Missing(onBack)
+        "inspire" -> InspirationScreen(state, vm, navigate, id, onBack)
+        "saved" -> SavedLooks(data, onBack, navigate)
+        "compare" -> PurchaseCompare(data, onBack, navigate)
+        "pickup" ->
+            PickupChecklist(
+                data,
+                parts.getOrNull(1).orEmpty().split(',').mapNotNull { it.toLongOrNull() },
+                onBack,
+            )
+        "calendar" -> OptionalTool("穿搭日历", onBack) { CalendarScreen(data, navigate, vm) }
+        "care" -> OptionalTool("洗护记录", onBack) { CareScreen(data, navigate, vm) }
+        "statistics" -> OptionalTool("主动记录的统计", onBack) { StatsScreen(data, navigate) }
         "profile" -> ProfileScreen(state, vm, onBack, navigate)
         "locations" -> LocationScreen(data, vm, onBack)
         "history" -> HistoryScreen(data, onBack, navigate)
@@ -772,4 +789,17 @@ private fun OutfitDetail(
             ask = false
             vm.perform("搭配已删除", onBack) { deleteOutfit(o.id) }
         }
+}
+
+@Composable
+private fun OptionalTool(title: String, onBack: () -> Unit, content: @Composable () -> Unit) {
+    Column(Modifier.fillMaxSize()) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconTap("back", "返回", onBack)
+            Text(title, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.weight(1f))
+            Micro("OPTIONAL", modifier = Modifier.padding(end = 20.dp))
+        }
+        Box(Modifier.weight(1f)) { content() }
+    }
 }

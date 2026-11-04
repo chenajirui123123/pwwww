@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +37,26 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
     val state by vm.state.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var route by rememberSaveable { mutableStateOf("") }
+    var routeHistory by rememberSaveable { mutableStateOf("") }
+    var routeInstance by rememberSaveable { mutableLongStateOf(0L) }
+    var nextInstance by rememberSaveable { mutableLongStateOf(0L) }
+    val screenStates = rememberSaveableStateHolder()
+    val navigate: (String) -> Unit = { next ->
+        if (route.isNotEmpty())
+            routeHistory =
+                (routeHistory.split('|').filter { it.isNotBlank() } + "$routeInstance@$route").joinToString("|")
+        nextInstance += 1
+        routeInstance = nextInstance
+        route = next
+    }
+    val goBack: () -> Unit = {
+        val history = routeHistory.split('|').filter { it.isNotBlank() }
+        screenStates.removeState("${state.account?.id}/$routeInstance@$route")
+        val previous = history.lastOrNull()
+        route = previous?.substringAfter('@') ?: ""
+        routeInstance = previous?.substringBefore('@')?.toLongOrNull() ?: 0L
+        routeHistory = history.dropLast(1).joinToString("|")
+    }
     var knownOwner by rememberSaveable { mutableStateOf<Long?>(null) }
     val snack = remember { SnackbarHostState() }
     val haptic = LocalHapticFeedback.current
@@ -48,6 +69,7 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
     LaunchedEffect(state.loaded, state.account?.id) {
         if (state.loaded && knownOwner != state.account?.id) {
             route = ""
+            routeHistory = ""
             tab = 0
             knownOwner = state.account?.id
         }
@@ -65,12 +87,12 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Teal)
                 }
-            else if (state.account == null) AuthScreen(vm, state.busy)
+            else if (state.account == null) LightWelcome(vm, state.busy)
             else {
-                BackHandler(route.isNotEmpty()) { route = "" }
+                BackHandler(route.isNotEmpty()) { goBack() }
                 Scaffold(
                     containerColor = Paper,
-                    topBar = { if (route.isEmpty()) BrandBar { route = "profile" } },
+                    topBar = { if (route.isEmpty()) BrandBar { tab = 2 } },
                     bottomBar = {
                         if (route.isEmpty())
                             AtelierNavigation(tab) { next ->
@@ -84,14 +106,14 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                 ) { padding ->
                     Box(Modifier.fillMaxSize().padding(padding)) {
                         AnimatedContent(
-                            targetState = if (route.isEmpty()) "tab/$tab" else route,
+                            targetState = if (route.isEmpty()) "tab/$tab" else "$routeInstance@$route",
                             transitionSpec = {
                                 val fromTab = initialState.substringAfter("tab/", "").toIntOrNull()
                                 val toTab = targetState.substringAfter("tab/", "").toIntOrNull()
                                 val direction =
                                     if (fromTab != null && toTab != null) {
                                         if (toTab > fromTab) 1 else -1
-                                    } else if (toTab != null) -1 else 1
+                                    } else if (toTab != null || ((targetState.substringBefore('@').toLongOrNull() ?: Long.MAX_VALUE) < (initialState.substringBefore('@').toLongOrNull() ?: 0L))) -1 else 1
                                 ((fadeIn(tween(230, delayMillis = 35)) +
                                         slideInHorizontally(
                                             tween(300, easing = FastOutSlowInEasing)
@@ -108,17 +130,19 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                             },
                             label = "page-transition",
                         ) { destination ->
-                            if (destination.startsWith("tab/"))
-                                when (destination.substringAfter('/').toInt()) {
-                                    0 -> ClosetScreen(state.data, { route = it })
-                                    1 -> OutfitsScreen(state.data, { route = it })
-                                    2 -> CalendarScreen(state.data, { route = it }, vm)
-                                    3 -> CareScreen(state.data, { route = it }, vm)
-                                    else -> StatsScreen(state.data, { route = it })
-                                }
-                            else
-                                DetailRouter(destination, state, vm, { route = "" }, { route = it })
+                            screenStates.SaveableStateProvider(
+                                "${state.account?.id}/$destination"
+                            ) {
+                                if (destination.startsWith("tab/"))
+                                    when (destination.substringAfter('/').toInt()) {
+                                        0 -> FindWardrobeScreen(state.data, vm, navigate)
+                                        1 -> InspirationScreen(state, vm, navigate)
+                                        else -> LightProfile(state, vm, navigate)
+                                    }
+                                else DetailRouter(destination.substringAfter('@'), state, vm, goBack, navigate)
+                            }
                         }
+
                         if (state.busy)
                             LinearProgressIndicator(
                                 Modifier.fillMaxWidth().align(Alignment.TopCenter),
@@ -155,8 +179,8 @@ private fun BrandBar(onProfile: () -> Unit) {
             Text("衣序", fontSize = 21.sp, fontWeight = FontWeight.Black, letterSpacing = (-.6).sp)
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
-                Micro("YIXU / WARDROBE", Ink)
-                Micro("PERSONAL COLLECTION", Muted)
+                Micro("YIXU / LIGHT", Ink)
+                Micro("LESS INPUT. MORE IDEAS.", Muted)
             }
             IconTap("user", "个人中心", onProfile)
         }
@@ -377,27 +401,7 @@ fun ClosetScreen(data: Wardrobe, navigate: (String) -> Unit) {
 
 @Composable
 fun OutfitMontage(items: List<Garment>, modifier: Modifier = Modifier) {
-    Row(modifier.background(Color.White), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-        if (items.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Glyph("outfit", Modifier.size(40.dp), Muted)
-            }
-        } else {
-            GarmentArt(
-                items.first(),
-                Modifier.weight(if (items.size > 1) 1.4f else 1f).fillMaxHeight(),
-            )
-            if (items.size > 1)
-                Column(
-                    Modifier.weight(1f).fillMaxHeight(),
-                    verticalArrangement = Arrangement.spacedBy(3.dp),
-                ) {
-                    items.drop(1).take(2).forEach {
-                        GarmentArt(it, Modifier.fillMaxWidth().weight(1f))
-                    }
-                }
-        }
-    }
+    OutfitBoard(items, modifier)
 }
 
 @Composable

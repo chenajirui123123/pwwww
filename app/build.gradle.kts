@@ -9,12 +9,12 @@ android {
     defaultConfig {
         // An isolated installation lets UI tests run without touching the user's wardrobe.
         applicationId =
-            "com.wardrobe.atelier" +
+            "com.wardrobe.atelier.light" +
                 if (providers.gradleProperty("isolatedPreview").isPresent) ".preview" else ""
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "2.0.0-alpha1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures {

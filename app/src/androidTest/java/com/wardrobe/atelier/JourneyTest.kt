@@ -19,7 +19,6 @@ class JourneyTest {
     @get:Rule val ui = createAndroidComposeRule<MainActivity>()
 
     private val garmentName = "测试雾蓝连衣裙" + (System.nanoTime() % 10000)
-    private val outfitName = "测试日常搭配" + (System.nanoTime() % 10000)
 
     private fun hideKeyboard() {
         ui.runOnUiThread {
@@ -52,84 +51,84 @@ class JourneyTest {
         }
     }
 
+    private fun click(text: String) {
+        val node = ui.onNodeWithText(text, substring = false)
+        runCatching { node.performScrollTo() }
+        node.assertIsDisplayed().performSemanticsAction(SemanticsActions.OnClick) { it() }
+        ui.waitForIdle()
+    }
+
     @Test
-    fun fullWardrobeJourney() {
-        ui.waitUntil(10000) {
-            ui.onAllNodesWithText("体验示例衣橱").fetchSemanticsNodes().isNotEmpty() ||
-                ui.onAllNodesWithText("我的衣橱").fetchSemanticsNodes().isNotEmpty()
-        }
-        if (ui.onAllNodesWithText("体验示例衣橱").fetchSemanticsNodes().isEmpty()) {
-            ui.onNodeWithContentDescription("个人中心").performClick()
-            ui.onNode(hasScrollAction()).performScrollToNode(hasText("退出当前账号"))
-            ui.onNodeWithText("退出当前账号").performScrollTo().performClick()
-            ui.onNodeWithText("确认", substring = false).performClick()
-        }
-        awaitText("体验示例衣橱")
+    fun lowFrictionWardrobeJourney() {
+        awaitText("先逛逛示例衣橱")
         shot("01-welcome")
-        ui.onNodeWithText("体验示例衣橱").performScrollTo().performClick()
-        awaitText("我的衣橱")
+        click("先逛逛示例衣橱")
+        awaitText("想找哪一件？")
         shot("02-wardrobe")
-        ui.onNodeWithText("录入衣物").performClick()
-        awaitText("衣物名称 *")
-        ui.onNodeWithText("衣物名称 *").performTextInput(garmentName)
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val before = com.wardrobe.atelier.data.LocalStore(context).use { it.snapshot() }
+        click("录入衣物")
+        awaitText("记下一件新衣")
+        ui.onNodeWithText("名字（可不填，自动命名）").performScrollTo().performTextInput(garmentName)
         hideKeyboard()
-        ui.onNodeWithText("连衣裙").performScrollTo().performClick()
-        ui.onNodeWithText("保存").performSemanticsAction(SemanticsActions.OnClick) { it() }
-        awaitText("我的衣橱")
-        ui.onNodeWithText("搜索衣物、品牌或位置").performTextInput(garmentName)
+        click("连衣裙")
+        click("保存衣物")
+        awaitText("想找哪一件？")
+        ui.onNodeWithText("蓝色外套 / 宿舍 / 围巾").performTextInput(garmentName)
         hideKeyboard()
-        ui.onNode(hasText(garmentName) and !hasSetTextAction())
-            .performScrollTo()
-            .assertIsDisplayed()
-            .performClick()
+        ui.onNode(hasText(garmentName) and !hasSetTextAction()).performScrollTo().performClick()
         awaitText("衣物档案")
         ui.activityRule.scenario.recreate()
         awaitText("衣物档案")
-        shot("03-item")
-        ui.onNodeWithText("待洗").performScrollTo().performClick()
-        ui.onNodeWithContentDescription("返回").performClick()
-        awaitText("我的衣橱")
-        ui.onNodeWithText("搭配", substring = false).performClick()
-        awaitText("搭配实验室")
-        shot("04-outfits")
-        ui.onNodeWithText("新建搭配").performClick()
-        awaitText("搭配名称 *")
-        ui.onNodeWithText("搭配名称 *").performTextInput(outfitName)
-        ui.onNodeWithText("搜索衣物").performScrollTo().performTextInput(garmentName)
+        click("换位置了？更新一下 →")
+        awaitText("现在放在哪里？")
+        ui.onNodeWithText("位置，例如 宿舍衣柜 · 上层").performTextInput("宿舍衣柜 · 上层")
         hideKeyboard()
-        ui.onNode(hasText(garmentName) and !hasSetTextAction()).performScrollTo().performClick()
-        ui.onNodeWithText("保存").performSemanticsAction(SemanticsActions.OnClick) { it() }
-        awaitText("搭配实验室")
-        ui.onNodeWithText(outfitName).performScrollTo().performClick()
-        awaitText("搭配档案")
-        ui.onNodeWithText("安排到日历").performScrollTo().performClick()
-        awaitText("安排穿搭计划")
-        ui.onNodeWithText("保存").performSemanticsAction(SemanticsActions.OnClick) { it() }
-        awaitText("搭配实验室")
-        ui.onNodeWithText("日历", substring = false).performClick()
+        click("更新位置")
+        awaitText("宿舍衣柜 · 上层")
+        shot("03-item-location")
+        click("今天就想穿这件")
+        awaitText("用这件，搭一套")
+        awaitText("这一套，你已经拥有")
+        ui.onNodeWithText("锁定 1 件 · 本轮跳过 0 件").assertExists()
+        shot("04-seed-inspiration")
+        click("收藏这套")
+        awaitText("已收藏")
+        click("去哪里拿这一套")
+        awaitText("照着位置，顺手拿齐")
+        ui.onNodeWithText(garmentName).performScrollTo().performClick()
+        shot("05-pickup")
+        ui.onNodeWithContentDescription("返回").performClick()
+        awaitText("用这件，搭一套")
+        ui.onNodeWithContentDescription("返回").performClick()
+        awaitText("衣物档案")
+        ui.onNodeWithContentDescription("返回").performClick()
+        awaitText("想找哪一件？")
+        ui.onNode(hasText(garmentName) and !hasSetTextAction()).assertExists()
+        click("录入衣物")
+        awaitText("记下一件新衣")
+        org.junit.Assert.assertEquals("", ui.onNodeWithText("名字（可不填，自动命名）").fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text)
+        ui.onNodeWithContentDescription("返回").performClick()
+        awaitText("想找哪一件？")
+        ui.onNodeWithText("我的", substring = false).performClick()
+        awaitText("用到时，再来就好")
+        shot("06-profile")
+        click("买前看一眼")
+        awaitText("购物前，先看看自己已有的。")
+        shot("07-compare")
+        ui.onNodeWithContentDescription("返回").performClick()
+        awaitText("用到时，再来就好")
+        ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("穿搭日历"))
+        click("穿搭日历")
         awaitText("穿搭日历")
-        shot("05-calendar")
-        ui.onAllNodesWithText("确认实际穿着").onFirst().performScrollTo().performSemanticsAction(
-            SemanticsActions.OnClick
-        ) {
-            it()
-        }
-        awaitText("保存实际穿着")
-        ui.onNodeWithText("保存实际穿着").performSemanticsAction(SemanticsActions.OnClick) { it() }
-        awaitText("穿搭日历")
-        ui.onAllNodesWithText("已记录穿着").onFirst().performScrollTo().assertIsDisplayed()
-        ui.onNodeWithText("洗护", substring = false).performClick()
-        awaitText("洗护工作台")
-        shot("06-care")
-        ui.onNodeWithText(garmentName).performScrollTo().assertIsDisplayed()
-        ui.onNodeWithText("统计", substring = false).performClick()
-        awaitText("衣橱观察")
-        shot("07-statistics")
-        ui.onNodeWithContentDescription("个人中心").performClick()
-        awaitText("个人中心")
-        shot("08-profile")
-        ui.onNodeWithText("穿着历史", substring = false).performClick()
-        awaitText("记录实际穿着")
-        shot("09-history")
+        ui.onNodeWithContentDescription("返回").performClick()
+        ui.onNodeWithText("我的", substring = false).assertExists()
+        ui.onNode(hasScrollToIndexAction()).performScrollToIndex(0)
+        awaitText("用到时，再来就好")
+        val after = com.wardrobe.atelier.data.LocalStore(context).use { it.snapshot() }
+        org.junit.Assert.assertEquals(before.wears, after.wears)
+        org.junit.Assert.assertEquals(before.careLogs, after.careLogs)
+        org.junit.Assert.assertEquals(before.garments.size + 1, after.garments.size)
+        org.junit.Assert.assertTrue(after.outfits.size > before.outfits.size)
     }
 }

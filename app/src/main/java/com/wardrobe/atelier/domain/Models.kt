@@ -14,7 +14,7 @@ val Silhouettes =
         "包袋" to listOf("手提包", "双肩包"),
         "配饰" to listOf("围巾", "帽子"),
     )
-val Seasons = listOf("四季", "春秋", "夏季", "冬季")
+val Seasons = listOf("未标注", "四季", "春秋", "夏季", "冬季")
 val PaletteNames = listOf("米白", "黑色", "灰色", "蓝色", "绿色", "棕色", "粉色", "其他")
 val PaletteHex =
     listOf(

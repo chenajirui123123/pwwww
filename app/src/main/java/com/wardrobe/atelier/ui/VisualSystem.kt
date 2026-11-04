@@ -209,8 +209,8 @@ fun ModuleHeading(title: String, code: String, action: String? = null, onAction:
 
 @Composable
 fun AtelierNavigation(selected: Int, onSelect: (Int) -> Unit) {
-    val labels = listOf("衣橱", "搭配", "日历", "洗护", "统计")
-    val icons = listOf("hanger", "outfit", "calendar", "care", "stats")
+    val labels = listOf("衣橱", "灵感", "我的")
+    val icons = listOf("hanger", "outfit", "user")
     Column(Modifier.fillMaxWidth().background(Ink).navigationBarsPadding()) {
         HorizontalDivider(color = Teal.copy(alpha = .45f))
         Row(

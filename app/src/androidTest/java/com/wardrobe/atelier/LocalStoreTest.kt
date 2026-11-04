@@ -222,4 +222,53 @@ class LocalStoreTest {
             if (restored.isNotEmpty()) File(restored).delete()
         }
     }
+
+    @Test
+    fun quickEntryFillsOnlyHonestDefaultsAndCreatesNoActivity() {
+        val id =
+            store.saveQuickGarment(
+                Garment(category = "连衣裙", name = "", color = "其他", season = "未标注", location = "")
+            )
+        val saved = store.snapshot().garments.single { it.id == id }
+        assertEquals("连衣裙", saved.name)
+        assertEquals("待放置", saved.location)
+        assertEquals("未标注", saved.season)
+        assertTrue(store.snapshot().wears.isEmpty())
+        assertTrue(store.snapshot().careLogs.isEmpty())
+    }
+
+    @Test
+    fun localSpaceIsStableAndDoesNotExposePasswordAccounts() {
+        val aliceId = garment()
+        val first = store.openLocalWardrobe()
+        assertTrue(store.snapshot().garments.isEmpty())
+        store.saveQuickGarment(Garment(name = "本机衣物"))
+        store.logout()
+        assertEquals(first.id, store.openLocalWardrobe().id)
+        assertEquals("本机衣物", store.snapshot().garments.single().name)
+        store.login("alice", "password123")
+        assertEquals(aliceId, store.snapshot().garments.single().id)
+        assertThrows(IllegalArgumentException::class.java) {
+            store.register("wardrobe_local", "password123", "冒用")
+        }
+    }
+
+    @Test
+    fun bulkMoveIsAtomicAndKeepsHistoryUntouched() {
+        val a = garment()
+        store.logout()
+        store.register("bobby", "password456", "Bob")
+        val b = garment()
+        store.login("alice", "password123")
+        assertThrows(IllegalArgumentException::class.java) {
+            store.moveGarments(listOf(a, b), "宿舍新柜")
+        }
+        assertEquals("衣柜", store.snapshot().garments.single().location)
+        assertFalse("宿舍新柜" in store.snapshot().locations)
+        val c = store.saveQuickGarment(Garment(name = "另一件"))
+        store.moveGarments(listOf(a, c), "宿舍新柜")
+        assertTrue(store.snapshot().garments.all { it.location == "宿舍新柜" })
+        assertTrue(store.snapshot().wears.isEmpty())
+        assertTrue(store.snapshot().careLogs.isEmpty())
+    }
 }
