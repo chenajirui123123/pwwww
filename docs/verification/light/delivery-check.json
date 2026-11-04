@@ -8,5 +8,7 @@
   "physical_device_verified": false,
   "tested_api": 36,
   "test_provider_in_main_apk": false,
-  "internet_permission": false
+  "internet_permission": false,
+  "installed_apk_sha256": "186582e78eca194acada3c5bb5e1036a74b18ff5d88dc7ac6876c209c465ec92",
+  "installed_matches_delivery": true
 }
