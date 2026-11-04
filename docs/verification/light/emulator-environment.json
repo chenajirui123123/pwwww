@@ -1,0 +1,11 @@
+{
+  "device": "emulator-5556",
+  "android_release": "16",
+  "api": "36",
+  "screen": "Physical size: 1080x2400",
+  "density": "Physical density: 420",
+  "font_scale": "1.0",
+  "memory": "MemTotal:        4014920 kB",
+  "installed_wardrobe_packages": "package:com.wardrobe.atelier.light.preview\npackage:com.wardrobe.atelier.light.preview.test\npackage:com.wardrobe.atelier\npackage:com.wardrobe.atelier.light\npackage:com.wardrobe.atelier.test",
+  "installed_wardrobe_packages_after_qa_cleanup": "package:com.wardrobe.atelier\npackage:com.wardrobe.atelier.light\npackage:com.wardrobe.atelier.test"
+}

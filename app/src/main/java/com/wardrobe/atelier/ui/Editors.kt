@@ -431,10 +431,12 @@ private fun GarmentPicker(
                         }
                         Text(g.name, Modifier.padding(7.dp), fontSize = 11.sp, maxLines = 2)
                         Text(
-                            if (g.archived) "已归档" else g.care.label,
+                            if (g.archived) "已归档" else g.location,
                             Modifier.padding(start = 7.dp, bottom = 7.dp),
                             fontSize = 10.sp,
-                            color = if (g.care == Care.READY && !g.archived) Muted else Pink,
+                            color = if (g.archived) Pink else DeepTeal,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         )
                     }
                 }
