@@ -104,7 +104,22 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                                 }
                             }
                     },
-                    snackbarHost = { SnackbarHost(snack, Modifier.padding(bottom = 80.dp)) },
+                    snackbarHost = {
+                        SnackbarHost(
+                            snack,
+                            Modifier.padding(
+                                bottom = if (route.isEmpty() && tab != 1) 0.dp else 80.dp
+                            ),
+                        ) { message ->
+                            Snackbar(
+                                message,
+                                shape = SmallPanel,
+                                containerColor = Ink,
+                                contentColor = Color.White,
+                                actionColor = Teal,
+                            )
+                        }
+                    },
                 ) { padding ->
                     Box(Modifier.fillMaxSize().padding(padding)) {
                         AnimatedContent(
@@ -968,13 +983,16 @@ fun ConfirmDialog(title: String, message: String, onDismiss: () -> Unit, onConfi
         onDismissRequest = onDismiss,
         shape = Panel,
         containerColor = Color.White,
-        title = { Text(title, fontWeight = FontWeight.Bold) },
+        title = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(Modifier.size(32.dp, 4.dp).background(Teal))
+                Text(title, fontWeight = FontWeight.Black, fontSize = 23.sp)
+            }
+        },
         text = { Text(message) },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
         confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text("确认", color = Pink, fontWeight = FontWeight.Bold)
-            }
+            ActionButton("确认", onConfirm, Modifier.widthIn(min = 108.dp), icon = "check")
         },
     )
 }

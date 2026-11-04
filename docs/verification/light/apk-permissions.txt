@@ -1,0 +1,3 @@
+package: com.wardrobe.atelier.light
+permission: com.wardrobe.atelier.light.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission: name='com.wardrobe.atelier.light.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'

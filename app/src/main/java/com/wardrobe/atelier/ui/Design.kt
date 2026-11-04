@@ -6,6 +6,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +19,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -370,11 +372,17 @@ fun Tag(text: String, active: Boolean = false, onClick: (() -> Unit)? = null, co
             .padding(horizontal = 13.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
+        if (active)
+            Box(
+                Modifier.align(Alignment.CenterStart)
+                    .offset(x = (-7).dp)
+                    .size(3.dp, 12.dp)
+                    .background(color)
+            )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            if (active) Box(Modifier.size(3.dp, 12.dp).background(color))
             Text(
                 text,
                 fontSize = 12.sp,
@@ -392,6 +400,30 @@ fun ChipRow(options: List<String>, selected: String, onSelect: (String) -> Unit)
         horizontalArrangement = Arrangement.spacedBy(7.dp),
     ) {
         options.forEach { Tag(it, it == selected, { onSelect(it) }) }
+    }
+}
+
+@Composable
+fun CheckOption(
+    text: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    Row(
+        modifier
+            .heightIn(min = 48.dp)
+            .toggleable(
+                value = checked,
+                enabled = enabled,
+                role = Role.Checkbox,
+                onValueChange = onCheckedChange,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked, null, enabled = enabled)
+        Text(text, Modifier.weight(1f).padding(end = 8.dp), fontSize = 13.sp)
     }
 }
 
@@ -475,7 +507,8 @@ fun GarmentArt(g: Garment, modifier: Modifier = Modifier) {
                             .getOrNull()
                     }
         }
-    if (image != null) Image(image!!, g.name, modifier, contentScale = ContentScale.Crop)
+    if (image != null)
+        Image(image!!, g.name, modifier.background(Paper), contentScale = ContentScale.Fit)
     else
         Canvas(modifier.semantics { contentDescription = g.name }) {
             val hue = Color(PaletteHex[PaletteNames.indexOf(g.color).coerceAtLeast(0)])

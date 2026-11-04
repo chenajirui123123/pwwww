@@ -1,0 +1,10 @@
+
+com.wardrobe.atelier.ImportRotationTest:.
+com.wardrobe.atelier.JourneyTest:.
+com.wardrobe.atelier.LocalStoreTest:...................
+
+Time: 44.861
+
+OK (21 tests)
+
+

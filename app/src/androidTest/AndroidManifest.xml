@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <provider android:name="com.wardrobe.atelier.DelayedImageProvider"
+            android:authorities="com.wardrobe.atelier.test.images"
+            android:exported="true" />
+    </application>
+</manifest>

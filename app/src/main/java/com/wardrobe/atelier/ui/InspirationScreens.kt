@@ -1,6 +1,5 @@
 package com.wardrobe.atelier.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -123,7 +122,7 @@ fun InspirationScreen(
                     Spacer(Modifier.weight(1f))
                     TextButton(onClick = { navigate("saved") }) { Text("我的收藏 →") }
                 }
-                AnimatedVisibility(filters) {
+                RevealPanel(filters) {
                     Column(
                         Modifier.fillMaxWidth().background(Color.White, Panel).padding(14.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -143,47 +142,29 @@ fun InspirationScreen(
                             mood = it
                             generate(request.copy(mood = it))
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
+                        Row {
+                            CheckOption(
+                                "搭上外套",
                                 outer,
                                 {
                                     outer = it
                                     generate(request.copy(outerwear = it))
                                 },
+                                Modifier.weight(1f),
                             )
-                            Text("搭上外套", fontSize = 13.sp)
-                            Checkbox(
+                            CheckOption(
+                                "配个包",
                                 bag,
                                 {
                                     bag = it
                                     generate(request.copy(bag = it))
                                 },
+                                Modifier.weight(1f),
                             )
-                            Text("配个包", fontSize = 13.sp)
                         }
                     }
                 }
             }
-            if (locked.isNotEmpty() || excluded.isNotEmpty())
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "锁定 ${locked.size} 件 · 本轮跳过 ${excluded.size} 件",
-                            Modifier.weight(1f),
-                            fontSize = 12.sp,
-                            color = DeepTeal,
-                        )
-                        TextButton(
-                            onClick = {
-                                lockedText = ""
-                                excludedText = ""
-                                generate(pins = emptySet(), skips = emptySet())
-                            }
-                        ) {
-                            Text("重置")
-                        }
-                    }
-                }
             if (problem.isNotBlank())
                 item {
                     Text(
@@ -226,6 +207,26 @@ fun InspirationScreen(
                         }
                     }
                 }
+                if (locked.isNotEmpty() || excluded.isNotEmpty())
+                    item {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "锁定 ${locked.size} 件 · 本轮跳过 ${excluded.size} 件",
+                                Modifier.weight(1f),
+                                fontSize = 12.sp,
+                                color = DeepTeal,
+                            )
+                            TextButton(
+                                onClick = {
+                                    lockedText = ""
+                                    excludedText = ""
+                                    generate(pins = emptySet(), skips = emptySet())
+                                }
+                            ) {
+                                Text("重置")
+                            }
+                        }
+                    }
                 item {
                     Text(
                         "点衣物可锁定 · " + explanation,

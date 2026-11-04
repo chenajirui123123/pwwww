@@ -1,0 +1,8 @@
+
+com.wardrobe.atelier.JourneyTest:.
+
+Time: 24.112
+
+OK (1 test)
+
+

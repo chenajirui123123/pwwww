@@ -3,7 +3,6 @@ package com.wardrobe.atelier.ui
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -516,7 +515,7 @@ fun QuickGarmentEditor(
             TextButton(onClick = { expanded = !expanded }) {
                 Text(if (expanded) "收起可选信息 ↑" else "颜色、季节和更多信息（可后补） ↓")
             }
-            AnimatedVisibility(expanded) {
+            RevealPanel(expanded) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("颜色", fontWeight = FontWeight.Bold)
                     ChipRow(PaletteNames, color) { color = it }

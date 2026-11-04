@@ -20,6 +20,8 @@ Kotlin / Jetpack Compose 安卓工程，完全本机离线。这是从原 `code`
 ./scripts/build-macos.sh --offline
 ```
 
+已打包安装版：[Yixu-Light-2.0.0-alpha1-debug.apk](apk/Yixu-Light-2.0.0-alpha1-debug.apk)。
+
 APK 构建产物在 `app/build/outputs/apk/debug/app-debug.apk`。创新版包名为 `com.wardrobe.atelier.light`，可与原版并存。`-PisolatedPreview` 会生成额外的 `.preview` 测试包，用于隔离 QA 数据。
 
 ## 日常怎么用
@@ -55,6 +57,18 @@ APK 构建产物在 `app/build/outputs/apk/debug/app-debug.apk`。创新版包�
 - 在“我的”导出带独立口令的加密备份，包含衣物照片、搭配、行李胶囊和历史。请保存口令。
 - 可导入原版衣序备份；恢复会替换当前空间全部内容。新轻量版备份包含新增数据，应使用轻量版恢复。
 - 卸载或清除应用数据会移除本机内容，请先备份。
+
+## 验证与预览
+
+本轮 20 项 JVM 规则测试、21 项 Android 测试通过；lint 0 错误。小屏 360 dp 与 1.3 倍字体核心旅程通过，真实系统多选照片已验证。详细证据与限制见 [验证记录](docs/轻量版验证记录.md)。
+
+```bash
+ANDROID_SERIAL=emulator-5556 ./scripts/verify-light-macos.sh
+```
+
+脚本只清除 `.light.preview` 测试包的数据，要求明确指定设备；不会清除原版或正式轻量版。完成测试后如需运行正式轻量版，再执行不带 `-PisolatedPreview` 的普通构建。
+
+[实际操作视频](docs/screenshots-light/final/motion-light.mp4) · [安装版页面截图](docs/screenshots-light/final)
 
 ## 视觉与开发记录
 

@@ -19,6 +19,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
@@ -323,6 +324,7 @@ fun EditorialBanner(
 
 @Composable
 fun CollectionMetrics(values: List<Pair<Int, String>>) {
+    val stacked = values.any { it.first >= 100 } || LocalDensity.current.fontScale > 1.2f
     Row(
         Modifier.fillMaxWidth()
             .clip(Panel)
@@ -334,19 +336,33 @@ fun CollectionMetrics(values: List<Pair<Int, String>>) {
         values.forEachIndexed { i, (value, label) ->
             if (i > 0)
                 Box(Modifier.width(1.dp).height(28.dp).background(Color.White.copy(alpha = .12f)))
-            Row(
-                Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Numeral(
-                    value.toString().padStart(2, '0'),
-                    size = 32.sp,
-                    color = if (i == 1) Teal else Color.White,
-                )
-                Spacer(Modifier.width(7.dp))
-                Text(label, color = Color(0xFFC3CECB), fontSize = 10.sp, lineHeight = 15.sp)
-            }
+            if (stacked)
+                Column(
+                    Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Numeral(
+                        value.toString().padStart(2, '0'),
+                        size = if (value >= 10000) 22.sp else if (value >= 1000) 26.sp else 32.sp,
+                        color = if (i == 1) Teal else Color.White,
+                    )
+                    Text(label.replace('\n', ' '), color = Color(0xFFC3CECB), fontSize = 10.sp)
+                }
+            else
+                Row(
+                    Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Numeral(
+                        value.toString().padStart(2, '0'),
+                        size = 32.sp,
+                        color = if (i == 1) Teal else Color.White,
+                    )
+                    Spacer(Modifier.width(7.dp))
+                    Text(label, color = Color(0xFFC3CECB), fontSize = 10.sp, lineHeight = 15.sp)
+                }
         }
     }
 }

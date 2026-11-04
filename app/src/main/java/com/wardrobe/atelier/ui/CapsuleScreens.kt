@@ -163,19 +163,16 @@ fun CapsuleBuilder(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) {
                 }
             }
             item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        outer,
-                        {
-                            if (!busy) {
-                                outer = it
-                                invalidate()
-                            }
-                        },
-                        enabled = !busy,
-                    )
-                    Text("每套都考虑外套")
-                }
+                CheckOption(
+                    "每套都考虑外套",
+                    outer,
+                    {
+                        outer = it
+                        invalidate()
+                    },
+                    Modifier.fillMaxWidth(),
+                    enabled = !busy,
+                )
             }
             item {
                 ActionButton(

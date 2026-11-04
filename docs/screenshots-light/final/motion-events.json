@@ -1,0 +1,54 @@
+[
+  {
+    "seconds": 1.0,
+    "action": "进入灵感"
+  },
+  {
+    "seconds": 3.71,
+    "action": "展开条件"
+  },
+  {
+    "seconds": 6.42,
+    "action": "选择上下装"
+  },
+  {
+    "seconds": 9.17,
+    "action": "加入外套"
+  },
+  {
+    "seconds": 11.9,
+    "action": "加入包袋"
+  },
+  {
+    "seconds": 14.62,
+    "action": "收起条件"
+  },
+  {
+    "seconds": 22.33,
+    "action": "锁定一件"
+  },
+  {
+    "seconds": 27.25,
+    "action": "保留锁定并换一套"
+  },
+  {
+    "seconds": 29.94,
+    "action": "再换一套"
+  },
+  {
+    "seconds": 38.02,
+    "action": "进入我的"
+  },
+  {
+    "seconds": 46.02,
+    "action": "轻装出门"
+  },
+  {
+    "seconds": 51.88,
+    "action": "打开已存行李胶囊"
+  },
+  {
+    "seconds": 57.48,
+    "action": "查看穿搭组合"
+  }
+]

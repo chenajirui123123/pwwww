@@ -1,0 +1,8 @@
+
+com.wardrobe.atelier.ImportRotationTest:.
+
+Time: 8.668
+
+OK (1 test)
+
+

@@ -1,0 +1,12 @@
+{
+  "apk_sha256": "ac9139617dc05e51a338aeb6a7f32c2b5f5946ec70aef58ba13d530e66408a89",
+  "application_id": "com.wardrobe.atelier.light",
+  "version": "2.0.0-alpha1",
+  "unit_tests": 20,
+  "unit_failures": 0,
+  "android_full_suite": 21,
+  "physical_device_verified": false,
+  "tested_api": 36,
+  "test_provider_in_main_apk": false,
+  "internet_permission": false
+}

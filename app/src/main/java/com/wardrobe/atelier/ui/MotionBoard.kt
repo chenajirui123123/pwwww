@@ -21,6 +21,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import com.wardrobe.atelier.domain.Garment
 
+@Composable
+fun RevealPanel(visible: Boolean, content: @Composable AnimatedVisibilityScope.() -> Unit) {
+    AnimatedVisibility(
+        visible,
+        enter =
+            expandVertically(tween(240, easing = FastOutSlowInEasing), Alignment.Top) +
+                fadeIn(tween(160, 30)),
+        exit =
+            shrinkVertically(tween(180, easing = FastOutSlowInEasing), Alignment.Top) +
+                fadeOut(tween(100)),
+        content = content,
+    )
+}
+
 /** Each category is a stable slot: locked clothes remain still when the others slide in. */
 @Composable
 fun OutfitBoard(
@@ -31,57 +45,73 @@ fun OutfitBoard(
 ) {
     val bodies = garments.filter { it.category in setOf("上装", "下装", "连衣裙") }
     val others = garments.filterNot { it in bodies }
-    val primary = bodies.ifEmpty { garments.take(1) }
-    val extras = if (bodies.isEmpty()) garments.drop(1) else others
-    Row(
-        modifier.background(Paper).padding(7.dp),
-        horizontalArrangement = Arrangement.spacedBy(7.dp),
-    ) {
-        if (primary.isEmpty())
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Glyph("outfit", Modifier.size(42.dp), Muted)
-            }
-        else {
-            Column(
-                Modifier.weight(if (extras.size > 2) 1f else 1.2f).fillMaxHeight(),
-                verticalArrangement = Arrangement.spacedBy(7.dp),
-            ) {
-                primary.forEach { g ->
-                    key(g.category) {
-                        BoardTile(
-                            g,
-                            Modifier.fillMaxWidth().weight(1f),
-                            g.id in locked,
-                            onToggleLock,
-                        )
-                    }
+    // A preview must stay legible even for manually composed collections with many pieces.
+    // Full item lists remain available below the board in the editor and outfit detail.
+    val primary = bodies.ifEmpty { garments.take(1) }.take(2)
+    val extras = (if (bodies.isEmpty()) garments.drop(1) else others).take(4)
+    val overflow = garments.size - primary.size - extras.size
+    Box(modifier) {
+        Row(
+            Modifier.fillMaxSize().background(Paper).padding(7.dp),
+            horizontalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
+            if (primary.isEmpty())
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Glyph("outfit", Modifier.size(42.dp), Muted)
                 }
-            }
-            if (extras.isNotEmpty())
+            else {
                 Column(
-                    Modifier.weight(1f).fillMaxHeight(),
+                    Modifier.weight(if (extras.size > 2) 1f else 1.2f).fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(7.dp),
                 ) {
-                    extras.chunked(if (extras.size > 2) 2 else 1).forEach { row ->
-                        Row(
-                            Modifier.weight(1f),
-                            horizontalArrangement = Arrangement.spacedBy(7.dp),
-                        ) {
-                            row.forEach { g ->
-                                key(g.category) {
-                                    BoardTile(
-                                        g,
-                                        Modifier.weight(1f).fillMaxHeight(),
-                                        g.id in locked,
-                                        onToggleLock,
-                                    )
-                                }
-                            }
-                            if (extras.size > 2 && row.size == 1) Spacer(Modifier.weight(1f))
+                    primary.forEachIndexed { index, g ->
+                        key(g.category, index) {
+                            BoardTile(
+                                g,
+                                Modifier.fillMaxWidth().weight(1f),
+                                g.id in locked,
+                                onToggleLock,
+                            )
                         }
                     }
                 }
+                if (extras.isNotEmpty())
+                    Column(
+                        Modifier.weight(1f).fillMaxHeight(),
+                        verticalArrangement = Arrangement.spacedBy(7.dp),
+                    ) {
+                        extras.chunked(if (extras.size > 2) 2 else 1).forEach { row ->
+                            Row(
+                                Modifier.weight(1f),
+                                horizontalArrangement = Arrangement.spacedBy(7.dp),
+                            ) {
+                                row.forEachIndexed { index, g ->
+                                    key(g.category, index) {
+                                        BoardTile(
+                                            g,
+                                            Modifier.weight(1f).fillMaxHeight(),
+                                            g.id in locked,
+                                            onToggleLock,
+                                        )
+                                    }
+                                }
+                                if (extras.size > 2 && row.size == 1) Spacer(Modifier.weight(1f))
+                            }
+                        }
+                    }
+            }
         }
+        if (overflow > 0)
+            Text(
+                "+$overflow 件 · 见单品列表",
+                Modifier.align(Alignment.BottomEnd)
+                    .padding(8.dp)
+                    .background(Ink, SmallPanel)
+                    .padding(horizontal = 8.dp, vertical = 5.dp),
+                color = Color.White,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+            )
     }
 }
 

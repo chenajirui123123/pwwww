@@ -1,0 +1,153 @@
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/build.gradle.kts:15: Warning: Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the android.os.Build.VERSION_CODES javadoc for details. [OldTargetApi]
+        targetSdk = 36
+        ~~~~~~~~~~~~~~
+
+   Explanation for issues of type "OldTargetApi":
+   When your application or sdk runs on a version of Android that is more
+   recent than your targetSdk specifies that it has been tested with, various
+   compatibility modes kick in. This ensures that your application continues
+   to work, but it may look out of place. For example, if the targetSdk is
+   less than 14, your app may get an option button in the UI.
+
+   To fix this issue, set the targetSdk to the highest available value. Then
+   test your app to make sure everything works correctly. You may want to
+   consult the compatibility notes to see what changes apply to each version
+   you are adding support for:
+   https://developer.android.com/reference/android/os/Build.VERSION_CODES.html
+   as well as follow this guide:
+   https://developer.android.com/distribute/best-practices/develop/target-sdk.
+   html
+
+   https://developer.android.com/distribute/best-practices/develop/target-sdk.html
+
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/build.gradle.kts:8: Warning: A newer version of compileSdk than 36 is available: 37 [GradleDependency]
+    compileSdk = 36
+    ~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "GradleDependency":
+   This detector looks for usages of libraries where the version you are using
+   is not the current stable release. Using older versions is fine, and there
+   are cases where you deliberately want to stick with an older version.
+   However, you may simply not be aware that a more recent version is
+   available, and that is what this lint check helps find.
+
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/src/main/java/com/wardrobe/atelier/ui/InspirationScreens.kt:33: Warning: Using Configuration.screenHeightDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+    val boardHeight = if (LocalConfiguration.current.screenHeightDp < 760) 210.dp else 250.dp
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "ConfigurationScreenWidthHeight":
+   Configuration.screenWidthDp and Configuration.screenHeightDp have different
+   insets behaviour depending on target SDK version, and are rounded to the
+   nearest Dp. This means that using these values in composition to size a
+   layout can result in issues, as these values do not accurately represent
+   the actual available window size. Instead it is recommended to use
+   WindowInfo.containerSize which accurately represents the window size.
+
+   Vendor: Jetpack Compose
+   Identifier: androidx.compose.ui
+   Feedback: https://issuetracker.google.com/issues/new?component=612128
+
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/src/main/java/com/wardrobe/atelier/ui/Design.kt:94: Warning: Modifier parameter should be the first optional parameter [ModifierParameter from androidx.compose.ui]
+fun Micro(text: String, color: Color = Muted, modifier: Modifier = Modifier) {
+                                              ~~~~~~~~
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/src/main/java/com/wardrobe/atelier/ui/Design.kt:197: Warning: Optional Modifier parameter should have a default value of Modifier [ModifierParameter from androidx.compose.ui]
+fun Glyph(name: String, modifier: Modifier = Modifier.size(24.dp), color: Color = Ink) {
+                        ~~~~~~~~
+
+   Explanation for issues of type "ModifierParameter":
+   The first (or only) Modifier parameter in a Composable function should
+   follow the following rules:
+   - Be named modifier
+   - Have a type of Modifier
+   - Either have no default value, or have a default value of Modifier
+   - If optional, be the first optional parameter in the parameter list
+
+   Vendor: Jetpack Compose
+   Identifier: androidx.compose.ui
+   Feedback: https://issuetracker.google.com/issues/new?component=612128
+
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/src/main/java/com/wardrobe/atelier/data/LocalStore.kt:128: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        check(prefs.edit().putLong("owner", id).commit()) { "无法保存登录状态" }
+              ~~~~~~~~~~~~
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/src/main/java/com/wardrobe/atelier/data/LocalStore.kt:157: Warning: Use the KTX extension function SQLiteDatabase.transaction instead? [UseKtx]
+        writableDatabase.beginTransaction()
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/src/main/java/com/wardrobe/atelier/data/LocalStore.kt:196: Warning: Use the KTX extension function SQLiteDatabase.transaction instead? [UseKtx]
+        db.beginTransaction()
+        ~~~~~~~~~~~~~~~~~~~~~
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/src/main/java/com/wardrobe/atelier/data/LocalStore.kt:253: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        check(prefs.edit().remove("owner").commit()) { "无法保存退出状态，请重试" }
+              ~~~~~~~~~~~~
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/src/main/java/com/wardrobe/atelier/data/LocalStore.kt:603: Warning: Use the KTX extension function SQLiteDatabase.transaction instead? [UseKtx]
+        writableDatabase.beginTransaction()
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/src/main/java/com/wardrobe/atelier/data/LocalStore.kt:634: Warning: Use the KTX extension function SQLiteDatabase.transaction instead? [UseKtx]
+        writableDatabase.beginTransaction()
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/src/main/java/com/wardrobe/atelier/data/LocalStore.kt:740: Warning: Use the KTX function createBitmap instead? [UseKtx]
+        val bmp = Bitmap.createBitmap(oriented.width, oriented.height, Bitmap.Config.ARGB_8888)
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/src/main/java/com/wardrobe/atelier/data/LocalStore.kt:773: Warning: Use the KTX extension function SQLiteDatabase.transaction instead? [UseKtx]
+        writableDatabase.beginTransaction()
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/firexin/program/大三上课程/软件系统设计与体系结构/大作业/创新/衣序轻量版/app/src/main/java/com/wardrobe/atelier/data/LocalStore.kt:1091: Warning: Use the KTX extension function SQLiteDatabase.transaction instead? [UseKtx]
+        writableDatabase.beginTransaction()
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "UseKtx":
+   The Android KTX libraries decorates the Android platform SDK as well as
+   various libraries with more convenient extension functions available from
+   Kotlin, allowing you to use default parameters, named parameters, and
+   more.
+
+   Available options:
+
+   **remove-defaults** (default is true):
+   Whether to skip arguments that match the defaults provided by the extension.
+
+   Extensions often provide default values for some of the parameters. For example:
+   ```kotlin
+   fun Path.readLines(charset: Charset = Charsets.UTF_8): List<String> { return Files.readAllLines(this, charset) }
+   ```
+   This lint check will by default automatically omit parameters that match the default, so if your code was calling
+
+   ```kotlin
+   Files.readAllLines(file, Charset.UTF_8)
+   ```
+   lint would replace this with
+   ```kotlin
+   file.readLines()
+   ```
+   rather than
+
+   ```kotlin
+   file.readLines(Charset.UTF_8
+   ```
+   You can turn this behavior off using this option.
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UseKtx">
+           <option name="remove-defaults" value="true" />
+       </issue>
+   </lint>
+   ```
+
+   **require-present** (default is true):
+   Whether to only offer extensions already available.
+
+   This option lets you only have lint suggest extension replacements if those extensions are already available on the class path (in other words, you're already depending on the library containing the extension method.)
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UseKtx">
+           <option name="require-present" value="true" />
+       </issue>
+   </lint>
+   ```
+
+0 errors, 14 warnings
