@@ -94,6 +94,7 @@ data class Wardrobe(
     val wears: List<Wear> = emptyList(),
     val careLogs: List<CareLog> = emptyList(),
     val locations: List<String> = emptyList(),
+    val capsules: List<Capsule> = emptyList(),
 ) {
     val active
         get() = garments.filterNot { it.archived }

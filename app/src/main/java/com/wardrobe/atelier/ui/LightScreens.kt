@@ -8,6 +8,8 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -16,7 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.wardrobe.atelier.AppState
@@ -27,7 +32,7 @@ import com.wardrobe.atelier.domain.*
 private fun parseIds(value: String) = value.split(',').mapNotNull { it.toLongOrNull() }.toSet()
 
 @Composable
-fun LightWelcome(vm: WardrobeViewModel, busy: Boolean) {
+fun LightWelcome(vm: WardrobeViewModel, busy: Boolean, incomingImage: Boolean = false) {
     var accounts by rememberSaveable { mutableStateOf(false) }
     if (accounts) {
         BackHandler { accounts = false }
@@ -57,6 +62,14 @@ fun LightWelcome(vm: WardrobeViewModel, busy: Boolean) {
             Spacer(Modifier.weight(1f))
             Micro("LESS INPUT. MORE IDEAS.")
         }
+        if (incomingImage)
+            Text(
+                "已收到图片，先选择一个衣橱，再继续录入。",
+                Modifier.fillMaxWidth()
+                    .background(Lime.copy(alpha = .5f), SmallPanel)
+                    .padding(12.dp),
+                fontSize = 13.sp,
+            )
         EditorialBanner(
             "记得衣服\\n不必记流水账".replace("\\n", "\n"),
             "买新衣时录入，用得上时再打开。",
@@ -100,7 +113,13 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
     var selectedText by rememberSaveable { mutableStateOf("") }
     var moving by remember { mutableStateOf(false) }
     var archived by rememberSaveable { mutableStateOf(false) }
-    val selected = parseIds(selectedText)
+    val focus = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    BackHandler(selecting) {
+        selecting = false
+        selectedText = ""
+    }
+    val selected = parseIds(selectedText).intersect(data.garments.map { it.id }.toSet())
     val matching =
         data.garments.filter {
             it.archived == archived &&
@@ -120,7 +139,17 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
             item {
                 ModuleHeading("想找哪一件？", "01 / FIND YOUR CLOTHES", "录入衣物") { navigate("garment/0") }
             }
-            item { Text("${data.active.size} 件衣物，记在这里就好。", color = Muted, fontSize = 13.sp) }
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "${data.active.size} 件衣物，记在这里就好。",
+                        Modifier.weight(1f),
+                        color = Muted,
+                        fontSize = 13.sp,
+                    )
+                    TextButton(onClick = { navigate("batch") }) { Text("批量录入", fontSize = 12.sp) }
+                }
+            }
             item {
                 AtelierTextField(
                     query,
@@ -128,6 +157,18 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
                     Modifier.fillMaxWidth(),
                     placeholder = { Text("蓝色外套 / 宿舍 / 围巾", fontSize = 14.sp) },
                     leadingIcon = { Glyph("search", Modifier.size(21.dp)) },
+                    trailingIcon =
+                        if (query.isNotBlank()) {
+                            { IconTap("close", "清空搜索", { query = "" }) }
+                        } else null,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions =
+                        KeyboardActions(
+                            onSearch = {
+                                focus.clearFocus()
+                                keyboard?.hide()
+                            }
+                        ),
                     singleLine = true,
                 )
             }
@@ -140,6 +181,7 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
                     TextButton(
                         onClick = {
                             selecting = !selecting
+                            byPlace = false
                             selectedText = ""
                         }
                     ) {
@@ -248,8 +290,18 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("已选 ${selected.size} 件", Modifier.weight(1f), fontWeight = FontWeight.Bold)
-                TextButton(onClick = { selectedText = matching.map { it.id }.joinToString(",") }) {
-                    Text("选择当前结果")
+                val visibleIds = matching.map { it.id }.toSet()
+                val allVisibleSelected = visibleIds.isNotEmpty() && selected.containsAll(visibleIds)
+                TextButton(
+                    onClick = {
+                        selectedText =
+                            (if (allVisibleSelected) selected - visibleIds
+                                else selected + visibleIds)
+                                .joinToString(",")
+                    },
+                    enabled = visibleIds.isNotEmpty(),
+                ) {
+                    Text(if (allVisibleSelected) "取消当前全选" else "全选当前结果")
                 }
                 ActionButton("移至…", { moving = true }, enabled = selected.isNotEmpty())
             }
@@ -415,7 +467,7 @@ fun QuickGarmentEditor(
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text("照片也可以以后补", fontWeight = FontWeight.Bold)
                     Text(
-                        "商品截图或相册照片都可以。\n不拍照，也能先记住位置。",
+                        "商品截图或相册照片都可以。\n也能从相册“分享”到衣序。",
                         fontSize = 12.sp,
                         lineHeight = 19.sp,
                         color = Muted,
@@ -489,6 +541,7 @@ fun QuickGarmentEditor(
                         { price = it },
                         Modifier.fillMaxWidth(),
                         label = { Text("价格（选填）") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         singleLine = true,
                     )
                     AtelierTextField(
@@ -641,6 +694,7 @@ fun LightProfile(state: AppState, vm: WardrobeViewModel, navigate: (String) -> U
         item { ProfileRow("outfit", "收藏的搭配", "不用重新想，随时拿出一套") { navigate("saved") } }
         item { ProfileRow("search", "买前看一眼", "同类同色的衣物，衣橱里是否已经有了") { navigate("compare") } }
         item { ProfileRow("archive", "收纳位置", "换季搬动时，再整理就好") { navigate("locations") } }
+        item { ProfileRow("suitcase", "轻装出门", "少带几件，组合几套旅行穿搭") { navigate("capsules") } }
         item { BackupPanel(vm, state) }
         item { SectionTitle("可选工具", "ONLY IF YOU NEED THEM") }
         item {

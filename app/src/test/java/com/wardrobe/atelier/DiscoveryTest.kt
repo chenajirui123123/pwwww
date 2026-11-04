@@ -121,4 +121,13 @@ class DiscoveryTest {
         val source = clothes.map { it.copy(care = Care.WASHING) }
         assertTrue(InspirationEngine.generate(source).items.isNotEmpty())
     }
+
+    @Test
+    fun literalNamesAndLocationsWorkWithoutOptionalColorTags() {
+        val g = Garment(1, "蓝色衬衫", color = "其他", location = "鞋架旁的收纳箱")
+        assertTrue(WardrobeSearch.matches(g, "蓝色衬衫"))
+        assertTrue(WardrobeSearch.matches(g, "蓝色 上衣"))
+        assertTrue(WardrobeSearch.matches(g, "鞋架"))
+        assertTrue(WardrobeSearch.matches(clothes[0], "米白色上衣"))
+    }
 }

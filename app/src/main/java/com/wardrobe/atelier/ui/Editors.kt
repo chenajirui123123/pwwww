@@ -39,6 +39,13 @@ fun DetailRouter(
     val date = parts.getOrNull(2) ?: LocalDate.now().toString()
     val data = state.data
     when (parts[0]) {
+        "shared" ->
+            QuickGarmentEditor(
+                Garment(image = Uri.decode(parts.getOrNull(1).orEmpty())),
+                state,
+                vm,
+                onBack,
+            )
         "garment" ->
             QuickGarmentEditor(data.garments.find { it.id == id } ?: Garment(), state, vm, onBack)
         "detail" ->
@@ -95,6 +102,13 @@ fun DetailRouter(
         "inspire" -> InspirationScreen(state, vm, navigate, id, onBack)
         "saved" -> SavedLooks(data, onBack, navigate)
         "compare" -> PurchaseCompare(data, onBack, navigate)
+        "batch" -> BatchPhotoEntry(state, vm, onBack)
+        "capsules" -> CapsulesScreen(data, onBack, navigate)
+        "capsulebuilder" -> CapsuleBuilder(state, vm, onBack)
+        "capsule" ->
+            data.capsules
+                .find { it.id == id }
+                ?.let { CapsuleDetail(it, state, vm, onBack, navigate) } ?: Missing(onBack)
         "pickup" ->
             PickupChecklist(
                 data,

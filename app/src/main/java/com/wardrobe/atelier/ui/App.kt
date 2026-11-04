@@ -35,6 +35,7 @@ import java.time.YearMonth
 @Composable
 fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val sharedImage by vm.sharedImage.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var route by rememberSaveable { mutableStateOf("") }
     var routeHistory by rememberSaveable { mutableStateOf("") }
@@ -44,7 +45,8 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
     val navigate: (String) -> Unit = { next ->
         if (route.isNotEmpty())
             routeHistory =
-                (routeHistory.split('|').filter { it.isNotBlank() } + "$routeInstance@$route").joinToString("|")
+                (routeHistory.split('|').filter { it.isNotBlank() } + "$routeInstance@$route")
+                    .joinToString("|")
         nextInstance += 1
         routeInstance = nextInstance
         route = next
@@ -87,7 +89,7 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Teal)
                 }
-            else if (state.account == null) LightWelcome(vm, state.busy)
+            else if (state.account == null) LightWelcome(vm, state.busy, sharedImage != null)
             else {
                 BackHandler(route.isNotEmpty()) { goBack() }
                 Scaffold(
@@ -102,18 +104,27 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                                 }
                             }
                     },
-                    snackbarHost = { SnackbarHost(snack) },
+                    snackbarHost = { SnackbarHost(snack, Modifier.padding(bottom = 80.dp)) },
                 ) { padding ->
                     Box(Modifier.fillMaxSize().padding(padding)) {
                         AnimatedContent(
-                            targetState = if (route.isEmpty()) "tab/$tab" else "$routeInstance@$route",
+                            targetState =
+                                if (route.isEmpty()) "tab/$tab" else "$routeInstance@$route",
                             transitionSpec = {
                                 val fromTab = initialState.substringAfter("tab/", "").toIntOrNull()
                                 val toTab = targetState.substringAfter("tab/", "").toIntOrNull()
                                 val direction =
                                     if (fromTab != null && toTab != null) {
                                         if (toTab > fromTab) 1 else -1
-                                    } else if (toTab != null || ((targetState.substringBefore('@').toLongOrNull() ?: Long.MAX_VALUE) < (initialState.substringBefore('@').toLongOrNull() ?: 0L))) -1 else 1
+                                    } else if (
+                                        toTab != null ||
+                                            ((targetState.substringBefore('@').toLongOrNull()
+                                                ?: Long.MAX_VALUE) <
+                                                (initialState.substringBefore('@').toLongOrNull()
+                                                    ?: 0L))
+                                    )
+                                        -1
+                                    else 1
                                 ((fadeIn(tween(230, delayMillis = 35)) +
                                         slideInHorizontally(
                                             tween(300, easing = FastOutSlowInEasing)
@@ -139,7 +150,14 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                                         1 -> InspirationScreen(state, vm, navigate)
                                         else -> LightProfile(state, vm, navigate)
                                     }
-                                else DetailRouter(destination.substringAfter('@'), state, vm, goBack, navigate)
+                                else
+                                    DetailRouter(
+                                        destination.substringAfter('@'),
+                                        state,
+                                        vm,
+                                        goBack,
+                                        navigate,
+                                    )
                             }
                         }
 
@@ -151,6 +169,46 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                             )
                     }
                 }
+            }
+            sharedImage?.let { uri ->
+                if (state.account != null)
+                    AlertDialog(
+                        onDismissRequest = { if (!state.busy) vm.consumeSharedImage(uri) },
+                        shape = Panel,
+                        title = { Text("用这张图片记一件衣服", fontWeight = FontWeight.Bold) },
+                        text = {
+                            Text(
+                                "存入：${state.account?.nickname}。图片会放入新衣物草稿，补上类别和位置后再保存。当前未完成的页面会保留。"
+                            )
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = { vm.consumeSharedImage(uri) },
+                                enabled = !state.busy,
+                            ) {
+                                Text("暂时不录入")
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    var path = ""
+                                    vm.perform(
+                                        null,
+                                        {
+                                            vm.consumeSharedImage(uri)
+                                            navigate("shared/${android.net.Uri.encode(path)}")
+                                        },
+                                    ) {
+                                        path = importImage(uri)
+                                    }
+                                },
+                                enabled = !state.busy,
+                            ) {
+                                Text(if (state.busy) "正在读取…" else "开始录入")
+                            }
+                        },
+                    )
             }
             if (state.error != null)
                 AlertDialog(
@@ -695,7 +753,7 @@ fun CareScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewModel
         item {
             EditorialBanner(
                 "照顾衣物\n照顾日常",
-                "${data.active.count { it.care != Care.READY }} 件衣物等待照料",
+                "${data.active.count { it.care != Care.READY }} 件有待处理的手动标记",
                 "CARE & RENEW",
                 R.drawable.care_stage,
             )
@@ -715,7 +773,7 @@ fun CareScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewModel
             item {
                 EmptyPanel(
                     "${state.label}列表为空",
-                    if (state == Care.DIRTY) "衣橱状态很好，继续保持。" else "更新衣物状态后会出现在这里。",
+                    if (state == Care.DIRTY) "没有衣物被手动标记为待洗。" else "更新衣物状态后会出现在这里。",
                 )
             }
         items(garments, key = { it.id }) { g ->
@@ -798,14 +856,14 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
                     UtilizationRing(percentage / 100f, Modifier.fillMaxSize())
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Numeral("$percentage%", size = 34.sp, color = Color.White)
-                        Micro("UTILIZATION", Teal)
+                        Micro("RECORDED", Teal)
                     }
                 }
                 Spacer(Modifier.width(24.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Micro("衣橱使用率", Color(0xFFBBC9C5))
+                    Micro("穿着记录覆盖", Color(0xFFBBC9C5))
                     Numeral("$worn / ${active.size}", size = 38.sp, color = Color.White)
-                    Text("${period}穿过的在用衣物", color = Color(0xFFBBC9C5), fontSize = 11.sp)
+                    Text("${period}有穿着记录的衣物", color = Color(0xFFBBC9C5), fontSize = 11.sp)
                 }
             }
         }
@@ -849,12 +907,12 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
                         )
                     }
                 }
-                Text("类别和使用率仅统计未归档衣物。", fontSize = 11.sp, color = Muted)
+                Text("类别和记录覆盖仅统计未归档衣物。", fontSize = 11.sp, color = Muted)
             }
         }
-        item { SectionTitle("常穿单品", "MOST WORN") }
+        item { SectionTitle("记录较多的单品", "MOST RECORDED") }
         if (frequencies.none { it.second > 0 })
-            item { Text("记录实际穿着后，常穿榜就会出现。", color = Muted, fontSize = 13.sp) }
+            item { Text("主动记录穿着后，这里会展示登记次数。", color = Muted, fontSize = 13.sp) }
         items(frequencies.filter { it.second > 0 }.take(5), key = { it.first.id }) { (g, n) ->
             Row(
                 Modifier.fillMaxWidth()
@@ -874,14 +932,14 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
             SectionTitle("重新发现", "REDISCOVER")
             ChipRow(listOf("30天", "60天", "90天"), idle) { idle = it }
             Spacer(Modifier.height(8.dp))
-            Text("未穿天数从最后一次有效穿着计算；从未穿过的衣物从录入日计算。", fontSize = 11.sp, color = Muted)
+            Text("距离最后记录的天数；没有记录时从录入日计算。没有登记不代表没有穿过。", fontSize = 11.sp, color = Muted)
         }
         val forgotten =
             active
                 .filter { data.idleDays(it) >= idle.removeSuffix("天").toInt() }
                 .sortedByDescending { data.idleDays(it) }
         if (forgotten.isEmpty())
-            item { Text("暂时没有闲置超过 $idle 的衣物。", fontSize = 13.sp, color = Muted) }
+            item { Text("没有超过 $idle 未更新穿着记录的衣物。", fontSize = 13.sp, color = Muted) }
         items(forgotten, key = { it.id }) { g ->
             Row(
                 Modifier.fillMaxWidth()
@@ -890,7 +948,7 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
                     .padding(12.dp)
             ) {
                 Text(g.name, Modifier.weight(1f), fontSize = 14.sp)
-                Text("${data.idleDays(g)} 天未穿", color = Pink, fontSize = 12.sp)
+                Text("${data.idleDays(g)} 天无记录", color = Pink, fontSize = 12.sp)
             }
         }
         item {

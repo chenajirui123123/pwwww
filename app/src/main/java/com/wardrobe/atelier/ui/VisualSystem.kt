@@ -6,6 +6,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -363,6 +364,9 @@ fun AtelierTextField(
     shape: Shape = SmallPanel,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    enabled: Boolean = true,
 ) {
     OutlinedTextField(
         value,
@@ -371,11 +375,14 @@ fun AtelierTextField(
         label = label,
         placeholder = placeholder,
         leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        enabled = enabled,
         singleLine = singleLine,
         minLines = minLines,
         shape = shape,
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         textStyle = TextStyle(fontSize = 15.sp, lineHeight = 22.sp, color = Ink),
         colors =
             OutlinedTextFieldDefaults.colors(

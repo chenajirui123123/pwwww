@@ -53,6 +53,12 @@ fun AtelierTheme(content: @Composable () -> Unit) {
                 background = Paper,
                 surface = Color.White,
                 surfaceVariant = Color(0xFFE6EAE6),
+                surfaceTint = Color.Transparent,
+                surfaceContainerHigh = Color.White,
+                surfaceContainerHighest = Paper,
+                inverseSurface = Ink,
+                inverseOnSurface = Color.White,
+                inversePrimary = Teal,
                 onSurface = Ink,
                 onSurfaceVariant = Muted,
                 outline = Line,
@@ -203,6 +209,20 @@ fun Glyph(name: String, modifier: Modifier = Modifier.size(24.dp), color: Color 
                 drawPath(p, color, style = s)
             }
             when (name) {
+                "suitcase" -> {
+                    drawRoundRect(
+                        color,
+                        Offset(4f, 6f),
+                        Size(16f, 14f),
+                        androidx.compose.ui.geometry.CornerRadius(1f),
+                        style = s,
+                    )
+                    path(9f, 6f, 9f, 3f, 15f, 3f, 15f, 6f)
+                    line(8f, 10f, 8f, 16f)
+                    line(16f, 10f, 16f, 16f)
+                    line(7f, 20f, 7f, 22f)
+                    line(17f, 20f, 17f, 22f)
+                }
                 "lock" -> {
                     drawRoundRect(
                         color,

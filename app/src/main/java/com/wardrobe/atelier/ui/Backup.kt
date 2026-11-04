@@ -33,7 +33,7 @@ fun BackupPanel(vm: WardrobeViewModel, state: AppState) {
             else vm.notify("已取消恢复")
         }
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        ProfileRow("archive", "导出加密备份", "衣物、照片、搭配与全部历史") { mode = "export" }
+        ProfileRow("archive", "导出加密备份", "衣物、照片、搭配、行李与记录") { mode = "export" }
         ProfileRow("clock", "从备份恢复", "需要备份口令，会替换当前账号内容") { mode = "restore" }
     }
     if (mode.isNotEmpty())
@@ -47,8 +47,8 @@ fun BackupPanel(vm: WardrobeViewModel, state: AppState) {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        if (mode == "export") "至少 8 位。请记住口令，恢复时需要输入；账号密码不会写入备份。"
-                        else "恢复会替换当前账号的全部衣物、搭配和历史。其他账号不受影响。建议先导出当前数据备份。"
+                        if (mode == "export") "至少 8 位。请记住口令，恢复时需要输入；账号密码不会写入备份。此备份供轻量版恢复使用。"
+                        else "恢复会替换当前账号的衣物、搭配、行李胶囊和历史。支持旧版衣序备份；旧备份不含行李胶囊。其他账号不受影响，建议先备份当前数据。"
                     )
                     AtelierTextField(
                         pass,

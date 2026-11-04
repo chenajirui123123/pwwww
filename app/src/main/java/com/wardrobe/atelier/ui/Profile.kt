@@ -64,7 +64,11 @@ fun ProfileScreen(
                             color = Color.White,
                         )
                         Micro(
-                            "@${account.username}",
+                            when (account.username) {
+                                "wardrobe_local" -> "本机空间 · 无需密码"
+                                "wardrobe_demo" -> "示例衣橱"
+                                else -> "@${account.username}"
+                            },
                             Color(0xFFBDC8C5),
                             Modifier.padding(top = 5.dp),
                         )
@@ -91,7 +95,7 @@ fun ProfileScreen(
                         fontSize = 12.sp,
                     )
                     Text(
-                        "计划不会自动计入穿着次数；历史不会在 30 天后自动删除。统计页的 30 / 60 / 90 天仅用于查看闲置衣物。",
+                        "计划不会自动计入穿着次数；历史不会在 30 天后自动删除。统计页的 30 / 60 / 90 天仅用于查看无记录的时长，不代表衣物没有穿过。",
                         color = Muted,
                         fontSize = 12.sp,
                     )
@@ -185,7 +189,7 @@ fun ProfileScreen(
             },
         )
     if (logout)
-        ConfirmDialog("退出当前账号？", "本机衣物与历史记录仍然保留，重新登录即可查看。", { logout = false }) {
+        ConfirmDialog("退出当前账号？", "本机衣物与历史记录仍然保留，再次进入同一空间即可查看。", { logout = false }) {
             logout = false
             vm.perform("已退出登录") { logout() }
         }

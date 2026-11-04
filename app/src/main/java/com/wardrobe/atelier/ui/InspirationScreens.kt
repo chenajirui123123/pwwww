@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import com.wardrobe.atelier.AppState
@@ -30,6 +31,7 @@ fun InspirationScreen(
     onBack: (() -> Unit)? = null,
 ) {
     val data = state.data
+    val boardHeight = if (LocalConfiguration.current.screenHeightDp < 760) 210.dp else 250.dp
     var season by rememberSaveable { mutableStateOf("不限") }
     var structure by rememberSaveable { mutableStateOf("自动") }
     var mood by rememberSaveable { mutableStateOf("随心") }
@@ -202,7 +204,8 @@ fun InspirationScreen(
             else {
                 item {
                     Column(Modifier.fillMaxWidth().clip(Panel).background(Color.White)) {
-                        OutfitBoard(pieces, Modifier.fillMaxWidth().height(250.dp), locked) { id ->
+                        OutfitBoard(pieces, Modifier.fillMaxWidth().height(boardHeight), locked) {
+                            id ->
                             lockedText =
                                 (if (id in locked) locked - id else locked + id).joinToString(",")
                         }
@@ -230,31 +233,6 @@ fun InspirationScreen(
                         fontSize = 12.sp,
                         lineHeight = 19.sp,
                     )
-                }
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        ActionButton("换一套", { generate() }, Modifier.weight(1f), icon = "refresh")
-                        ActionButton(
-                            if (saved) "已收藏" else "收藏这套",
-                            {
-                                vm.perform("已收藏，不计入穿着记录") {
-                                    saveOutfit(
-                                        Outfit(
-                                            name =
-                                                "${if (mood == "随心") "日常" else mood}灵感 ${data.outfits.size + 1}",
-                                            occasion = if (mood == "随心") "日常" else mood,
-                                            notes = "衣橱灵感组合",
-                                            items = pieces.map { it.id },
-                                        )
-                                    )
-                                }
-                            },
-                            Modifier.weight(1f),
-                            secondary = true,
-                            enabled = !saved && !state.busy,
-                            icon = "check",
-                        )
-                    }
                 }
                 item {
                     ProfileRow("archive", "去哪里拿这一套", "按收纳位置列出拿衣清单") {
@@ -317,6 +295,42 @@ fun InspirationScreen(
                         color = Muted,
                     )
                 }
+            }
+        }
+        if (pieces.isNotEmpty()) {
+            Row(
+                Modifier.fillMaxWidth()
+                    .background(Color.White)
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                ActionButton(
+                    "换一套",
+                    { generate() },
+                    Modifier.weight(1f),
+                    enabled = !state.busy,
+                    icon = "refresh",
+                )
+                ActionButton(
+                    if (saved) "已收藏" else "收藏这套",
+                    {
+                        vm.perform("搭配已收藏") {
+                            saveOutfit(
+                                Outfit(
+                                    name =
+                                        "${if (mood == "随心") "日常" else mood}灵感 ${data.outfits.size + 1}",
+                                    occasion = if (mood == "随心") "日常" else mood,
+                                    notes = "衣橱灵感组合",
+                                    items = pieces.map { it.id },
+                                )
+                            )
+                        }
+                    },
+                    Modifier.weight(1f),
+                    secondary = true,
+                    enabled = !saved && !state.busy,
+                    icon = "check",
+                )
             }
         }
     }

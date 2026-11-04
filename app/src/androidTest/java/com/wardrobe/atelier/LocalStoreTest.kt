@@ -271,4 +271,149 @@ class LocalStoreTest {
         assertTrue(store.snapshot().wears.isEmpty())
         assertTrue(store.snapshot().careLogs.isEmpty())
     }
+
+    @Test
+    fun capsulePackingIsIsolatedPersistentAndNeverBecomesWear() {
+        val a = garment()
+        val b = store.saveGarment(Garment(name = "长裤", category = "下装"))
+        val id = store.saveCapsule(Capsule(name = "周末", looks = listOf(listOf(a, b))))
+        store.setCapsulePacked(id, a, true)
+        store.close()
+        store = LocalStore(context, name)
+        assertEquals(listOf(a), store.snapshot().capsules.single().packed)
+        assertTrue(store.snapshot().wears.isEmpty())
+        assertTrue(store.snapshot().careLogs.isEmpty())
+        store.logout()
+        store.register("bobby", "password456", "Bob")
+        assertTrue(store.snapshot().capsules.isEmpty())
+        assertThrows(IllegalArgumentException::class.java) { store.setCapsulePacked(id, a, true) }
+        assertThrows(IllegalArgumentException::class.java) { store.deleteCapsule(id) }
+        store.login("alice", "password123")
+        store.resetCapsulePacked(id)
+        assertTrue(store.snapshot().capsules.single().packed.isEmpty())
+        store.deleteCapsule(id)
+        assertEquals(2, store.snapshot().garments.size)
+    }
+
+    @Test
+    fun capsuleBackupRemapsEveryGarmentAndPackedReference() {
+        val a = garment()
+        val b = store.saveGarment(Garment(name = "连衣裙", category = "连衣裙"))
+        store.saveCapsule(
+            Capsule(
+                name = "轻装",
+                looks = listOf(listOf(a), listOf(b)),
+                packed = listOf(a),
+                notes = "带雨伞",
+            )
+        )
+        val file = File(context.cacheDir, "capsule-${UUID.randomUUID()}.yixubackup")
+        try {
+            store.exportBackup(Uri.fromFile(file), "backup-password")
+            store.logout()
+            store.register("bobby", "password456", "Bob")
+            store.importBackup(Uri.fromFile(file), "backup-password")
+            val data = store.snapshot()
+            val capsule = data.capsules.single()
+            assertEquals("带雨伞", capsule.notes)
+            assertEquals(data.garments.map { it.id }.toSet(), capsule.items.toSet())
+            assertTrue(capsule.items.none { it in setOf(a, b) })
+            assertEquals("测试衬衫", data.pieces(capsule.packed).single().name)
+        } finally {
+            file.delete()
+        }
+    }
+
+    @Test
+    fun schemaTwoUpgradeKeepsExistingGarments() {
+        val id = garment()
+        store.writableDatabase.execSQL("DROP TABLE capsules")
+        store.writableDatabase.version = 2
+        store.close()
+        store = LocalStore(context, name)
+        assertEquals(id, store.snapshot().garments.single().id)
+        assertTrue(store.snapshot().capsules.isEmpty())
+        store.saveCapsule(Capsule(name = "升级后", looks = listOf(listOf(id))))
+        assertEquals(1, store.snapshot().capsules.size)
+    }
+
+    @Test
+    fun legacyBackupWithoutCapsulesStillImports() {
+        garment()
+        val file = File(context.cacheDir, "legacy-${UUID.randomUUID()}.yixubackup")
+        try {
+            store.exportBackup(Uri.fromFile(file), "backup-password")
+            val json =
+                org.json.JSONObject(
+                    String(
+                        com.wardrobe.atelier.data.BackupCipher.decrypt(
+                            file.readBytes(),
+                            "backup-password",
+                        ),
+                        Charsets.UTF_8,
+                    )
+                )
+            json.put("schema", 1)
+            json.remove("capsules")
+            file.writeBytes(
+                com.wardrobe.atelier.data.BackupCipher.encrypt(
+                    json.toString().toByteArray(Charsets.UTF_8),
+                    "backup-password",
+                )
+            )
+            store.importBackup(Uri.fromFile(file), "backup-password")
+            assertEquals("测试衬衫", store.snapshot().garments.single().name)
+            assertTrue(store.snapshot().capsules.isEmpty())
+        } finally {
+            file.delete()
+        }
+    }
+
+    @Test
+    fun batchEntryRollsBackWholeBatchAndDoesNotCreateActivity() {
+        assertThrows(IllegalArgumentException::class.java) {
+            store.saveQuickGarments(
+                listOf(Garment(name = "第一件", location = "新位置"), Garment(name = "错".repeat(41)))
+            )
+        }
+        assertTrue(store.snapshot().garments.isEmpty())
+        assertFalse("新位置" in store.snapshot().locations)
+        val saved =
+            store.saveQuickGarments(
+                listOf(Garment(name = "上衣"), Garment(name = "长裤", category = "下装"))
+            )
+        assertEquals(2, saved.size)
+        assertTrue(store.snapshot().wears.isEmpty())
+        assertTrue(store.snapshot().careLogs.isEmpty())
+    }
+
+    @Test
+    fun failedPhotoBatchCleansOnlyNewUnreferencedPrivateCopies() {
+        val source = File(context.cacheDir, "batch-${UUID.randomUUID()}.png")
+        val invalid = File(context.cacheDir, "invalid-${UUID.randomUUID()}.png")
+        try {
+            source.outputStream().use {
+                Bitmap.createBitmap(24, 24, Bitmap.Config.ARGB_8888)
+                    .compress(Bitmap.CompressFormat.PNG, 100, it)
+            }
+            invalid.writeText("not an image")
+            val kept = store.importImage(Uri.fromFile(source))
+            store.saveGarment(Garment(name = "已保存", image = kept))
+            val dir = File(kept).parentFile!!
+            val before = dir.listFiles()!!.map { it.name }.toSet()
+            assertThrows(IllegalArgumentException::class.java) {
+                store.importImages(listOf(Uri.fromFile(source), Uri.fromFile(invalid)))
+            }
+            assertEquals(before, dir.listFiles()!!.map { it.name }.toSet())
+            val draft = store.importImage(Uri.fromFile(source))
+            store.discardDraftImages(listOf(kept, draft, source.absolutePath))
+            assertTrue(File(kept).isFile)
+            assertFalse(File(draft).exists())
+            assertTrue(source.isFile)
+            File(kept).delete()
+        } finally {
+            source.delete()
+            invalid.delete()
+        }
+    }
 }

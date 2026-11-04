@@ -22,7 +22,7 @@ import org.json.JSONArray
 
 /** All business reads and writes are scoped to the authenticated local account. */
 class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
-    SQLiteOpenHelper(context, dbName, null, 2) {
+    SQLiteOpenHelper(context, dbName, null, 3) {
     private val prefs = context.getSharedPreferences("session_$dbName", Context.MODE_PRIVATE)
     private var signedIn: Long = prefs.getLong("owner", 0)
 
@@ -51,11 +51,20 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
         listOf("garments", "outfits", "plans", "wears", "care_logs", "locations").forEach {
             db.execSQL("CREATE INDEX idx_${it}_owner ON $it(owner)")
         }
+        createCapsules(db)
+    }
+
+    private fun createCapsules(db: SQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE capsules(id INTEGER PRIMARY KEY AUTOINCREMENT, owner INTEGER NOT NULL, name TEXT NOT NULL, season TEXT NOT NULL, looks TEXT NOT NULL, packed TEXT NOT NULL, notes TEXT NOT NULL)"
+        )
+        db.execSQL("CREATE INDEX idx_capsules_owner ON capsules(owner)")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         if (oldVersion < 2)
             db.execSQL("ALTER TABLE garments ADD COLUMN style TEXT NOT NULL DEFAULT ''")
+        if (oldVersion < 3) createCapsules(db)
     }
 
     private fun values(vararg pairs: Pair<String, Any?>) =
@@ -141,6 +150,43 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
                 (if (g.color == "其他") "" else g.color) + g.style.ifBlank { g.category }
             }
         return saveGarment(g.copy(name = title, location = g.location.trim().ifBlank { "待放置" }))
+    }
+
+    fun saveQuickGarments(garments: List<Garment>): List<Long> {
+        require(garments.size in 1..20 && garments.all { it.id == 0L }) { "每次可新增 1–20 件衣物" }
+        writableDatabase.beginTransaction()
+        try {
+            val ids = garments.map { saveQuickGarment(it) }
+            writableDatabase.setTransactionSuccessful()
+            return ids
+        } finally {
+            writableDatabase.endTransaction()
+        }
+    }
+
+    fun importImages(uris: List<Uri>): List<String> {
+        val unique = uris.distinct()
+        require(unique.size in 1..20) { "一次请选择 1–20 张图片" }
+        val made = mutableListOf<String>()
+        try {
+            unique.forEachIndexed { index, uri ->
+                try {
+                    made += importImage(uri)
+                } catch (e: Exception) {
+                    throw IllegalArgumentException("第 ${index + 1} 张图片：${e.message ?: "无法读取"}", e)
+                }
+            }
+            return made
+        } catch (e: Exception) {
+            discardDraftImages(made)
+            throw e
+        }
+    }
+
+    /** Only a current owner's unreferenced private imports can be removed. */
+    fun discardDraftImages(paths: List<String>) {
+        val referenced = owned("garments", map = ::garment).map { it.image }.toSet()
+        paths.distinct().filter { it !in referenced }.forEach { privateImage(it)?.delete() }
     }
 
     fun moveGarments(ids: List<Long>, location: String) {
@@ -290,7 +336,91 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
                 )
             },
             owned("locations", "id ASC") { it.s("name") },
+            owned("capsules", "id DESC") {
+                Capsule(
+                    it.l("id"),
+                    it.s("name"),
+                    it.s("season"),
+                    looks(it.s("looks")),
+                    ids(it.s("packed")),
+                    it.s("notes"),
+                )
+            },
         )
+
+    private fun looks(text: String): List<List<Long>> =
+        JSONArray(text).let { a -> (0 until a.length()).map { ids(a.getJSONArray(it).toString()) } }
+
+    private fun looksJson(value: List<List<Long>>) =
+        JSONArray().apply { value.forEach { put(JSONArray(it)) } }.toString()
+
+    private fun validateCapsule(c: Capsule) {
+        require(c.name.trim().length in 1..40 && c.notes.length <= 500) { "请填写行李胶囊名称，备注最多 500 字" }
+        require(c.season in listOf("不限", "春秋", "夏季", "冬季")) { "季节无效" }
+        require(
+            c.looks.size in 1..7 && c.looks.all { it.size in 1..8 && it.distinct().size == it.size }
+        ) {
+            "每份行李胶囊可保存 1–7 套搭配"
+        }
+        require(c.packed.distinct().size == c.packed.size && c.packed.all { it in c.items }) {
+            "清单勾选关联无效"
+        }
+    }
+
+    fun saveCapsule(c: Capsule): Long {
+        validateCapsule(c)
+        requireItems(c.items, c.id == 0L)
+        return save(
+            "capsules",
+            c.id,
+            values(
+                "name" to c.name.trim(),
+                "season" to c.season,
+                "looks" to looksJson(c.looks),
+                "packed" to json(c.packed),
+                "notes" to c.notes,
+            ),
+        )
+    }
+
+    fun setCapsulePacked(id: Long, garmentId: Long, checked: Boolean) {
+        requireOwned("capsules", id)
+        val c =
+            owned("capsules") {
+                    Capsule(
+                        it.l("id"),
+                        it.s("name"),
+                        it.s("season"),
+                        looks(it.s("looks")),
+                        ids(it.s("packed")),
+                        it.s("notes"),
+                    )
+                }
+                .first { it.id == id }
+        require(garmentId in c.items) { "这件衣物不在当前行李清单中" }
+        save(
+            "capsules",
+            id,
+            values(
+                "packed" to
+                    json(if (checked) (c.packed + garmentId).distinct() else c.packed - garmentId)
+            ),
+        )
+    }
+
+    fun resetCapsulePacked(id: Long) {
+        requireOwned("capsules", id)
+        save("capsules", id, values("packed" to "[]"))
+    }
+
+    fun deleteCapsule(id: Long) {
+        requireOwned("capsules", id)
+        writableDatabase.delete(
+            "capsules",
+            "id=? AND owner=?",
+            arrayOf(id.toString(), owner().toString()),
+        )
+    }
 
     private fun requireOwned(table: String, id: Long) {
         require(
@@ -819,10 +949,11 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
         val root =
             org.json
                 .JSONObject()
-                .put("schema", 1)
+                .put("schema", 2)
                 .put("app", "YIXU")
                 .put("created", LocalDateTime.now().toString())
-        val tables = listOf("garments", "outfits", "plans", "wears", "care_logs", "locations")
+        val tables =
+            listOf("garments", "outfits", "plans", "wears", "care_logs", "locations", "capsules")
         tables.forEach { table ->
             val a = JSONArray()
             owned(table) { c ->
@@ -880,11 +1011,14 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
         val root =
             runCatching { org.json.JSONObject(String(bytes, Charsets.UTF_8)) }
                 .getOrElse { error("备份内容无法识别") }
-        require(root.optInt("schema") == 1 && root.optString("app") == "YIXU") { "不支持的备份格式" }
-        val tables = listOf("garments", "outfits", "plans", "wears", "care_logs", "locations")
+        require(root.optInt("schema") in 1..2 && root.optString("app") == "YIXU") { "不支持的备份格式" }
+        val tables =
+            listOf("garments", "outfits", "plans", "wears", "care_logs", "locations", "capsules")
         val rows =
             tables.associateWith { t ->
-                val a = root.getJSONArray(t)
+                val a =
+                    if (t == "capsules" && root.optInt("schema") == 1) JSONArray()
+                    else root.getJSONArray(t)
                 require(a.length() <= 20000) { "备份记录数量过多" }
                 (0 until a.length()).map { a.getJSONObject(it) }
             }
@@ -927,6 +1061,18 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
                 }
                 if (t != "outfits") LocalDate.parse(o.getString("date"))
             }
+        }
+        rows.getValue("capsules").forEach { o ->
+            val capsule =
+                Capsule(
+                    name = o.getString("name"),
+                    season = o.getString("season"),
+                    looks = looks(o.getString("looks")),
+                    packed = ids(o.getString("packed")),
+                    notes = o.getString("notes"),
+                )
+            validateCapsule(capsule)
+            require(capsule.items.all { it in ids }) { "行李胶囊的衣物关联无效" }
         }
         rows.getValue("care_logs").forEach { o ->
             require(o.getLong("garmentId") in ids) { "洗护记录关联无效" }
@@ -1028,6 +1174,21 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
                 )
             }
             rows.getValue("locations").forEach { o -> insert("locations", o) }
+            rows.getValue("capsules").forEach { o ->
+                insert(
+                    "capsules",
+                    o,
+                    mapOf(
+                        "looks" to
+                            looksJson(
+                                looks(o.getString("looks")).map { look ->
+                                    look.map { garmentMap.getValue(it) }
+                                }
+                            ),
+                        "packed" to json(ids(o.getString("packed")).map { garmentMap.getValue(it) }),
+                    ),
+                )
+            }
             writableDatabase.setTransactionSuccessful()
         } catch (e: Exception) {
             made.forEach { it.delete() }

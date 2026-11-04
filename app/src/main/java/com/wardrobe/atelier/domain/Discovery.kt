@@ -7,8 +7,14 @@ object WardrobeSearch {
     fun matches(g: Garment, query: String): Boolean {
         var rest = query.trim().lowercase()
         if (rest.isBlank()) return true
+        val searchable =
+            "${g.name} ${g.category} ${g.style} ${g.color} ${g.brand} ${g.location} ${g.notes}"
+                .lowercase()
+        // A literal name or location must remain searchable even when optional tags are absent.
+        if (searchable.contains(rest)) return true
         val colors =
             mapOf(
+                "米白色" to "米白",
                 "白色" to "米白",
                 "米白" to "米白",
                 "黑色" to "黑色",
@@ -18,11 +24,20 @@ object WardrobeSearch {
                 "棕色" to "棕色",
                 "粉色" to "粉色",
             )
-        val tokens = colors.keys.filter { rest.contains(it) }
-        if (tokens.isNotEmpty()) {
-            if (tokens.none { colors[it] == g.color }) return false
-            tokens.forEach { rest = rest.replace(it, " ") }
-        }
+        val tokens = mutableListOf<String>()
+        colors.keys
+            .sortedByDescending { it.length }
+            .forEach { token ->
+                if (rest.contains(token)) {
+                    tokens += token
+                    rest = rest.replace(token, " ")
+                }
+            }
+        if (
+            tokens.isNotEmpty() &&
+                tokens.none { colors[it] == g.color || g.name.contains(it, ignoreCase = true) }
+        )
+            return false
         val categories =
             mapOf(
                 "连衣裙" to setOf("连衣裙"),
@@ -42,9 +57,6 @@ object WardrobeSearch {
             if (g.category !in categories.getValue(category)) return false
             rest = rest.replace(category, " ")
         }
-        val searchable =
-            "${g.name} ${g.category} ${g.style} ${g.color} ${g.brand} ${g.location} ${g.notes}"
-                .lowercase()
         return rest
             .split(Regex("[\\s，,、/]+"))
             .filter { it.isNotBlank() && it != "的" }
