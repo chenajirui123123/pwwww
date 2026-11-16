@@ -178,18 +178,8 @@ ANDROID_SERIAL=emulator-5556 ./scripts/verify-light-macos.sh
 
 脚本使用 `com.wardrobe.atelier.light.preview` 测试包并清除其测试数据，不会清除正式轻量版或原版衣序。`emulator-5556` 仅为示例，请按 `adb devices` 的结果修改。验证后需要普通安装包时，重新执行不带 `-PisolatedPreview` 的构建。
 
-## 视觉设计
-
-视觉和交互研究参考《明日方舟》界面设计参考视频中的字体层级、冷白底色、青绿与莓红配色、切角卡片和方向性过渡，并适配手机衣橱场景：锁定单品保持位置稳定，换搭配只对变化的格子播放动画。
-
-服饰插画和图标通过原生绘制实现，覆盖男装、女装与中性款式；主题图层由 AI 独立生成。项目未直接使用游戏角色或游戏界面素材。Barlow Condensed 字体随包提供，授权见 [SIL Open Font License](docs/licenses/BarlowCondensed-OFL.txt)。
-
-- [参考视频与交互映射](docs/参考视频_轻量版交互映射.md)
-- [创新开发计划与产品原则](docs/创新开发计划.md)
-- [完整界面截图与操作录像](docs/screenshots-light/final)
-
 ## 版本说明
 
 本仓库当前交付衣序轻量版，来自原版 `5d34771` 的独立开发分支；当前应用里程碑标签为 `light-v2.0.0-alpha1`。
 
-`apk/` 中的 1.0 / 1.1 安装包，以及 `docs/测试记录.md`、`docs/视觉升级_1.1.md` 和旧截图目录是保留的历史资料。体验当前版本请使用 **Yixu-Light-2.0.0-alpha1-debug.apk**，当前验证以轻量版记录为准。
+`apk/` 中的 1.0 / 1.1 安装包，以及 `docs/测试记录.md` 和旧截图目录是保留的历史资料。体验当前版本请使用 **Yixu-Light-2.0.0-alpha1-debug.apk**，当前验证以轻量版记录为准。
