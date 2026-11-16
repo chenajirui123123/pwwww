@@ -135,7 +135,7 @@ private fun Missing(onBack: () -> Unit) {
 }
 
 @Composable
-fun DetailTop(title: String, onBack: () -> Unit, code: String = "WARDROBE / RECORD") {
+fun DetailTop(title: String, onBack: () -> Unit, code: String = "WARDROBE / RECORD", translateTitle: Boolean = true) {
     Column(Modifier.fillMaxWidth().background(Paper)) {
         Row(
             Modifier.fillMaxWidth().padding(start = 8.dp, end = 20.dp, top = 4.dp, bottom = 8.dp),
@@ -145,8 +145,7 @@ fun DetailTop(title: String, onBack: () -> Unit, code: String = "WARDROBE / RECO
             Spacer(Modifier.width(6.dp))
             Column(Modifier.weight(1f)) {
                 Micro(code, DeepTeal)
-                Text(
-                    title,
+                Text(if (translateTitle) localized(title) else title,
                     fontSize = 23.sp,
                     lineHeight = 31.sp,
                     fontWeight = FontWeight.Black,
@@ -216,7 +215,7 @@ private fun Field(
         value,
         onChange,
         modifier = Modifier.fillMaxWidth(),
-        label = { Text(label, fontSize = 13.sp) },
+        label = { Text(localized(label), fontSize = 13.sp) },
         singleLine = single,
         minLines = if (single) 1 else 3,
         shape = SmallPanel,
@@ -228,7 +227,7 @@ private fun Field(
 @Composable
 private fun Label(text: String, code: String = "") {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(localized(text), fontSize = 14.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.width(10.dp))
         CodeLabel(code)
     }
@@ -263,7 +262,7 @@ fun DateField(label: String, value: String, onChange: (String) -> Unit, pastOnly
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Micro(label)
-            Text(value, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            Text(localized(value), fontSize = 17.sp, fontWeight = FontWeight.Bold)
         }
         Glyph("arrow", Modifier.size(18.dp))
     }
@@ -332,18 +331,17 @@ private fun GarmentEditor(
                     .background(Ink, SmallPanel)
                     .padding(horizontal = 16.dp, vertical = 9.dp)
             ) {
-                Text(
-                    if (image.isBlank()) "＋ 从相册选择图片" else "更换图片",
+                Text(localized(if (image.isBlank()) "＋ 从相册选择图片" else "更换图片"),
                     color = Color.White,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                 )
             }
         }
-        Text("支持 JPG / PNG / WebP，最大 5 MB。未选图片时使用分类插画。", fontSize = 11.sp, color = Muted)
+        Text(localized("支持 JPG / PNG / WebP，最大 5 MB。未选图片时使用分类插画。"), fontSize = 11.sp, color = Muted)
         if (image.isNotEmpty())
             TextButton(onClick = { image = "" }) {
-                Text("移除当前照片，使用插画", color = Muted, fontSize = 12.sp)
+                Text(localized("移除当前照片，使用插画"), color = Muted, fontSize = 12.sp)
             }
         Field("衣物名称 *", name, { name = it.take(40) })
         Label("衣物类别")
@@ -368,7 +366,7 @@ private fun GarmentEditor(
         Field("品牌（选填）", brand, { brand = it.take(40) })
         Field("购入价格 / 元（选填）", price, { price = it }, numeric = true)
         Field("备注（选填）", notes, { notes = it.take(500) }, single = false)
-        Text("新衣物默认为可穿；编辑资料不会改动已有洗护状态。", fontSize = 11.sp, color = Muted)
+        Text(localized("新衣物默认为可穿；编辑资料不会改动已有洗护状态。"), fontSize = 11.sp, color = Muted)
         Spacer(Modifier.height(8.dp))
     }
 }
@@ -397,12 +395,12 @@ private fun GarmentPicker(
                     onClick = { onSelect(emptyList()) },
                     contentPadding = PaddingValues(0.dp),
                 ) {
-                    Text("清空", fontSize = 12.sp)
+                    Text(localized("清空"), fontSize = 12.sp)
                 }
         }
         Field("搜索衣物", search, { search = it })
         ChipRow(listOf("全部") + Categories, category) { category = it }
-        if (source.isEmpty()) Text("暂无可选衣物，请先在衣橱录入。", color = Muted, fontSize = 13.sp)
+        if (source.isEmpty()) Text(localized("暂无可选衣物，请先在衣橱录入。"), color = Muted, fontSize = 13.sp)
         source.chunked(3).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { g ->
@@ -514,7 +512,7 @@ private fun PlanEditor(original: Plan, state: AppState, vm: WardrobeViewModel, o
     ) {
         DateField("计划日期", date, { date = it })
         Label("选择搭配")
-        if (state.data.outfits.isEmpty()) Text("请先到搭配实验室保存一套搭配。", color = Pink, fontSize = 13.sp)
+        if (state.data.outfits.isEmpty()) Text(localized("请先到搭配实验室保存一套搭配。"), color = Pink, fontSize = 13.sp)
         state.data.outfits.forEach { o ->
             Row(
                 Modifier.fillMaxWidth()
@@ -536,13 +534,13 @@ private fun PlanEditor(original: Plan, state: AppState, vm: WardrobeViewModel, o
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(o.name, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    Text("${o.items.size} 件 · ${o.occasion}", color = Muted, fontSize = 12.sp)
+                    Text(localized("${o.items.size} 件 · ${o.occasion}"), color = Muted, fontSize = 12.sp)
                 }
                 if (outfit == o.id) Glyph("check", color = Teal)
             }
         }
         Field("计划备注", notes, { notes = it.take(500) }, single = false)
-        Text("计划是对未来的安排。只有确认实际穿着后，才会生成记录并计入统计。", color = Muted, fontSize = 12.sp)
+        Text(localized("计划是对未来的安排。只有确认实际穿着后，才会生成记录并计入统计。"), color = Muted, fontSize = 12.sp)
     }
 }
 
@@ -560,14 +558,14 @@ private fun WearEditor(original: Wear, state: AppState, vm: WardrobeViewModel, o
         Column {
             DetailTop("已撤销的穿着记录", onBack)
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(original.date, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                Text(localized(original.date), fontSize = 26.sp, fontWeight = FontWeight.Bold)
                 OutfitMontage(
                     state.data.pieces(original.items),
                     Modifier.fillMaxWidth().height(200.dp),
                 )
                 Text(state.data.pieces(original.items).joinToString("、") { it.name })
                 Text(original.notes)
-                Text("这条记录保留供查阅，已从统计中排除。", color = Pink)
+                Text(localized("这条记录保留供查阅，已从统计中排除。"), color = Pink)
             }
         }
         return
@@ -581,7 +579,7 @@ private fun WearEditor(original: Wear, state: AppState, vm: WardrobeViewModel, o
         "保存实际穿着",
     ) {
         DateField("实际穿着日期", date, { date = it }, true)
-        Text("日期可为今天或过去；记录穿着不会自动改变衣物的洗护状态。", color = Muted, fontSize = 12.sp)
+        Text(localized("日期可为今天或过去；记录穿着不会自动改变衣物的洗护状态。"), color = Muted, fontSize = 12.sp)
         GarmentPicker(
             state.data,
             current.items,
@@ -591,7 +589,7 @@ private fun WearEditor(original: Wear, state: AppState, vm: WardrobeViewModel, o
         Field("穿着备注", notes, { notes = it.take(500) }, single = false)
         if (original.id != 0L)
             TextButton(onClick = { ask = true }, enabled = !state.busy) {
-                Text("撤销这条穿着记录", color = Pink)
+                Text(localized("撤销这条穿着记录"), color = Pink)
             }
     }
     if (ask)
@@ -644,8 +642,7 @@ private fun GarmentDetail(
                                     .padding(12.dp)
                             ) {
                                 Micro(t)
-                                Text(
-                                    n,
+                                Text(localized(n),
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
                                     maxLines = 2,
@@ -656,7 +653,7 @@ private fun GarmentDetail(
             }
             item {
                 Text(
-                    "品牌：${g.brand.ifBlank{"未填写"}}    价格：${if(g.price>0) "¥ %.2f".format(g.price) else "未填写"}",
+                    "${localized("品牌（选填）")}: ${g.brand.ifBlank { localized("未填写") }}    ${localized("价格（选填）")}: ${if(g.price>0) "¥ %.2f".format(g.price) else localized("未填写")}",
                     fontSize = 13.sp,
                     color = Muted,
                 )
@@ -697,17 +694,16 @@ private fun GarmentDetail(
             }
             item { SectionTitle("最近穿着", "WEAR HISTORY") }
             val records = data.wears.filter { g.id in it.items }
-            if (records.isEmpty()) item { Text("尚未记录实际穿着。", color = Muted, fontSize = 13.sp) }
+            if (records.isEmpty()) item { Text(localized("尚未记录实际穿着。"), color = Muted, fontSize = 13.sp) }
             items(records.take(10), key = { it.id }) { w ->
                 WearRow(w, data) { navigate("wear/${w.id}") }
             }
             item {
                 SectionTitle("洗护变化", "CARE LOG", "全部历史") { navigate("carehistory/${g.id}") }
                 val logs = data.careLogs.filter { it.garmentId == g.id }.take(3)
-                if (logs.isEmpty()) Text("尚无洗护变化。", color = Muted, fontSize = 13.sp)
+                if (logs.isEmpty()) Text(localized("尚无洗护变化。"), color = Muted, fontSize = 13.sp)
                 logs.forEach {
-                    Text(
-                        "${it.time.take(16).replace('T',' ')}  ${it.before.label} → ${it.after.label}",
+                    Text(localized("${it.time.take(16).replace('T',' ')}  ${it.before.label} → ${it.after.label}"),
                         fontSize = 12.sp,
                         color = Muted,
                         modifier = Modifier.padding(vertical = 6.dp),
@@ -787,15 +783,15 @@ private fun OutfitDetail(
                         Text(g.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         Text(g.location, color = Muted, fontSize = 12.sp)
                     }
-                    if (g.archived) Text("已归档", color = Pink, fontSize = 12.sp)
+                    if (g.archived) Text(localized("已归档"), color = Pink, fontSize = 12.sp)
                     else StatusTag(g.care)
                 }
             }
             item {
                 Row {
-                    TextButton(onClick = { navigate("outfit/${o.id}") }) { Text("编辑搭配") }
+                    TextButton(onClick = { navigate("outfit/${o.id}") }) { Text(localized("编辑搭配")) }
                     Spacer(Modifier.weight(1f))
-                    TextButton(onClick = { ask = true }) { Text("删除搭配", color = Pink) }
+                    TextButton(onClick = { ask = true }) { Text(localized("删除搭配"), color = Pink) }
                 }
             }
         }
@@ -812,7 +808,7 @@ private fun OptionalTool(title: String, onBack: () -> Unit, content: @Composable
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconTap("back", "返回", onBack)
-            Text(title, fontWeight = FontWeight.Bold)
+            Text(localized(title), fontWeight = FontWeight.Bold)
             Spacer(Modifier.weight(1f))
             Micro("OPTIONAL", modifier = Modifier.padding(end = 20.dp))
         }

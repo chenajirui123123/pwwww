@@ -43,18 +43,16 @@ fun BackupPanel(vm: WardrobeViewModel, state: AppState) {
                 pass = ""
             },
             shape = Panel,
-            title = { Text(if (mode == "export") "设置备份口令" else "恢复加密备份") },
+            title = { Text(localized(if (mode == "export") "设置备份口令" else "恢复加密备份")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        if (mode == "export") "至少 8 位。请记住口令，恢复时需要输入；账号密码不会写入备份。此备份供轻量版恢复使用。"
-                        else "恢复会替换当前账号的衣物、搭配、行李胶囊和历史。支持旧版衣序备份；旧备份不含行李胶囊。其他账号不受影响，建议先备份当前数据。"
-                    )
+                    Text(localized(if (mode == "export") "至少 8 位。请记住口令，恢复时需要输入；账号密码不会写入备份。此备份供轻量版恢复使用。"
+                        else "恢复会替换当前账号的衣物、搭配、行李胶囊和历史。支持旧版衣序备份；旧备份不含行李胶囊。其他账号不受影响，建议先备份当前数据。"))
                     AtelierTextField(
                         pass,
                         { pass = it },
                         singleLine = true,
-                        label = { Text("备份口令") },
+                        label = { Text(localized("备份口令")) },
                         visualTransformation = PasswordVisualTransformation(),
                     )
                 }
@@ -66,7 +64,7 @@ fun BackupPanel(vm: WardrobeViewModel, state: AppState) {
                         pass = ""
                     }
                 ) {
-                    Text("取消")
+                    Text(localized("取消"))
                 }
             },
             confirmButton = {
@@ -77,7 +75,7 @@ fun BackupPanel(vm: WardrobeViewModel, state: AppState) {
                         else restore.launch(arrayOf("*/*"))
                     },
                 ) {
-                    Text(if (mode == "export") "选择保存位置" else "确认替换并选择备份", color = Pink)
+                    Text(localized(if (mode == "export") "选择保存位置" else "确认替换并选择备份"), color = Pink)
                 }
             },
         )

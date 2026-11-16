@@ -102,8 +102,7 @@ fun OutfitBoard(
             }
         }
         if (overflow > 0)
-            Text(
-                "+$overflow 件 · 见单品列表",
+            Text(localized("+$overflow 件 · 见单品列表"),
                 Modifier.align(Alignment.BottomEnd)
                     .padding(8.dp)
                     .background(Ink, SmallPanel)
@@ -140,7 +139,7 @@ private fun BoardTile(
                 if (onToggleLock != null)
                     Modifier.semantics {
                             selected = locked
-                            contentDescription = (if (locked) "解锁" else "锁定") + g.name
+                            contentDescription = localized(if (locked) "解锁" else "锁定") + " " + g.name
                         }
                         .clickable(
                             interactionSource = interaction,
@@ -171,7 +170,7 @@ private fun BoardTile(
                 .background(Color.White.copy(alpha = .91f), SmallPanel)
                 .padding(horizontal = 6.dp, vertical = 3.dp)
         ) {
-            Text(g.category, fontSize = 10.sp, color = Ink, fontWeight = FontWeight.Bold)
+            Text(localized(g.category), fontSize = 10.sp, color = Ink, fontWeight = FontWeight.Bold)
         }
         if (onToggleLock != null)
             Box(

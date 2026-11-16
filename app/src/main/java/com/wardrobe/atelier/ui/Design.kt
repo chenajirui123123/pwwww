@@ -94,8 +94,7 @@ fun AtelierTheme(content: @Composable () -> Unit) {
 fun Micro(text: String, color: Color = Muted, modifier: Modifier = Modifier) {
     if (text.isBlank()) return
     val latin = text.all { it.code < 128 }
-    Text(
-        text,
+    Text(localized(text),
         modifier,
         fontSize = if (latin) 13.sp else 11.sp,
         lineHeight = 16.sp,
@@ -122,12 +121,12 @@ fun SectionTitle(
         ) {
             Box(Modifier.size(3.dp, 16.dp).background(Pink))
             Spacer(Modifier.width(8.dp))
-            Text(text, fontSize = 17.sp, fontWeight = FontWeight.Black)
+            Text(localized(text), fontSize = 17.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.width(9.dp))
             Box(Modifier.weight(1f)) { CodeLabel(code) }
             if (action != null)
                 TextButton(onClick = onAction, contentPadding = PaddingValues(start = 8.dp)) {
-                    Text(action, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Text(localized(action), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     Glyph("arrow", Modifier.size(14.dp), DeepTeal)
                 }
         }
@@ -172,7 +171,7 @@ fun ActionButton(
             Glyph(icon, Modifier.size(18.dp), Color.White)
             Spacer(Modifier.width(8.dp))
         }
-        Text(text, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Text(localized(text), fontWeight = FontWeight.Bold, fontSize = 14.sp)
     }
 }
 
@@ -180,7 +179,7 @@ fun ActionButton(
 fun IconTap(name: String, label: String, onClick: () -> Unit, tint: Color = Ink) {
     IconButton(
         onClick = onClick,
-        modifier = Modifier.size(48.dp).semantics { contentDescription = label },
+        modifier = Modifier.size(48.dp).semantics { contentDescription = localized(label) },
     ) {
         Box(
             Modifier.size(34.dp)
@@ -383,8 +382,7 @@ fun Tag(text: String, active: Boolean = false, onClick: (() -> Unit)? = null, co
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            Text(
-                text,
+            Text(localized(text),
                 fontSize = 12.sp,
                 fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
                 color = if (active) Color.White else Muted,
@@ -423,7 +421,7 @@ fun CheckOption(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Checkbox(checked, null, enabled = enabled)
-        Text(text, Modifier.weight(1f).padding(end = 8.dp), fontSize = 13.sp)
+        Text(localized(text), Modifier.weight(1f).padding(end = 8.dp), fontSize = 13.sp)
     }
 }
 
@@ -443,7 +441,7 @@ fun StatusTag(state: Care) {
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Box(Modifier.size(4.dp).background(c))
-        Text(state.label, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = c)
+        Text(localized(state.label), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = c)
     }
 }
 
@@ -462,9 +460,8 @@ fun EmptyPanel(title: String, subtitle: String, action: String? = null, onAction
             Glyph("hanger", Modifier.size(32.dp), Teal)
         }
         Micro("A LITTLE SPACE FOR SOMETHING NEW", DeepTeal)
-        Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        Text(
-            subtitle,
+        Text(localized(title), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text(localized(subtitle),
             fontSize = 13.sp,
             color = Muted,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -922,14 +919,12 @@ fun GarmentCard(g: Garment, count: Int, onClick: () -> Unit, modifier: Modifier 
                 overflow = TextOverflow.Ellipsis,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "${g.category} · ${g.season}",
+                Text(localized("${g.category} · ${g.season}"),
                     Modifier.weight(1f),
                     fontSize = 10.sp,
                     color = Muted,
                 )
-                Text(
-                    "${count}次",
+                Text(localized("${count}次"),
                     fontSize = 11.sp,
                     fontFamily = TechnicalFont,
                     fontWeight = FontWeight.SemiBold,

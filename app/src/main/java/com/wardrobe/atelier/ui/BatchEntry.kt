@@ -85,10 +85,9 @@ fun BatchPhotoEntry(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) 
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item { Text("一张照片，对应一件衣物。", fontSize = 22.sp, fontWeight = FontWeight.Black) }
+            item { Text(localized("一张照片，对应一件衣物。"), fontSize = 22.sp, fontWeight = FontWeight.Black) }
             item {
-                Text(
-                    "可多选商品截图或相册照片。先统一位置，再按需要逐件改名字和类别；照片不会自动识别。每批最多 20 件。",
+                Text(localized("可多选商品截图或相册照片。先统一位置，再按需要逐件改名字和类别；照片不会自动识别。每批最多 20 件。"),
                     fontSize = 13.sp,
                     color = Muted,
                     lineHeight = 21.sp,
@@ -104,7 +103,7 @@ fun BatchPhotoEntry(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) 
                 )
             }
             item {
-                Text("这一批先放在哪里？", fontWeight = FontWeight.Bold)
+                Text(localized("这一批先放在哪里？"), fontWeight = FontWeight.Bold)
                 ChipRow((listOf("待放置") + state.data.locations).distinct(), location) {
                     if (!state.busy) location = it
                 }
@@ -114,13 +113,13 @@ fun BatchPhotoEntry(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) 
                     location,
                     { location = it.take(40) },
                     Modifier.fillMaxWidth(),
-                    label = { Text("统一收纳位置") },
+                    label = { Text(localized("统一收纳位置")) },
                     singleLine = true,
                     enabled = !state.busy,
                 )
             }
             item {
-                Text("统一类别（也可逐件改）", fontWeight = FontWeight.Bold)
+                Text(localized("统一类别（也可逐件改）"), fontWeight = FontWeight.Bold)
                 ChipRow(Categories, category) {
                     if (!state.busy) {
                         category = it
@@ -148,7 +147,7 @@ fun BatchPhotoEntry(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) 
                         )
                         Column(Modifier.weight(1f)) {
                             Micro("ITEM ${(index + 1).toString().padStart(2, '0')}")
-                            Text(d.category, fontWeight = FontWeight.Black, fontSize = 20.sp)
+                            Text(localized(d.category), fontWeight = FontWeight.Black, fontSize = 20.sp)
                             TextButton(
                                 onClick = {
                                     vm.perform(
@@ -160,7 +159,7 @@ fun BatchPhotoEntry(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) 
                                 },
                                 enabled = !state.busy,
                             ) {
-                                Text("移除这张", fontSize = 12.sp, color = Muted)
+                                Text(localized("移除这张"), fontSize = 12.sp, color = Muted)
                             }
                         }
                     }
@@ -182,7 +181,7 @@ fun BatchPhotoEntry(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) 
                             )
                         },
                         Modifier.fillMaxWidth(),
-                        label = { Text("第 ${index + 1} 件名字（可不填）") },
+                        label = { Text(localized("第 ${index + 1} 件名字（可不填）")) },
                         singleLine = true,
                         enabled = !state.busy,
                     )

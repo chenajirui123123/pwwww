@@ -34,6 +34,7 @@ import java.time.YearMonth
 
 @Composable
 fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
+    LanguagePreferences.initialize(androidx.compose.ui.platform.LocalContext.current)
     val state by vm.state.collectAsStateWithLifecycle()
     val sharedImage by vm.sharedImage.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -64,7 +65,7 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
     val haptic = LocalHapticFeedback.current
     LaunchedEffect(state.message) {
         state.message?.let {
-            snack.showSnackbar(it)
+            snack.showSnackbar(localized(it))
             vm.clearMessage()
         }
     }
@@ -190,7 +191,7 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                     AlertDialog(
                         onDismissRequest = { if (!state.busy) vm.consumeSharedImage(uri) },
                         shape = Panel,
-                        title = { Text("用这张图片记一件衣服", fontWeight = FontWeight.Bold) },
+                        title = { Text(localized("用这张图片记一件衣服"), fontWeight = FontWeight.Bold) },
                         text = {
                             Text(
                                 "存入：${state.account?.nickname}。图片会放入新衣物草稿，补上类别和位置后再保存。当前未完成的页面会保留。"
@@ -201,7 +202,7 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                                 onClick = { vm.consumeSharedImage(uri) },
                                 enabled = !state.busy,
                             ) {
-                                Text("暂时不录入")
+                                Text(localized("暂时不录入"))
                             }
                         },
                         confirmButton = {
@@ -220,7 +221,7 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                                 },
                                 enabled = !state.busy,
                             ) {
-                                Text(if (state.busy) "正在读取…" else "开始录入")
+                                Text(localized(if (state.busy) "正在读取…" else "开始录入"))
                             }
                         },
                     )
@@ -230,9 +231,9 @@ fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
                     onDismissRequest = vm::clearError,
                     shape = Panel,
                     containerColor = Color.White,
-                    title = { Text("请检查一下", fontWeight = FontWeight.Bold) },
-                    text = { Text(state.error!!) },
-                    confirmButton = { TextButton(onClick = vm::clearError) { Text("知道了") } },
+                    title = { Text(localized("请检查一下"), fontWeight = FontWeight.Bold) },
+                    text = { Text(localized(state.error!!)) },
+                    confirmButton = { TextButton(onClick = vm::clearError) { Text(localized("知道了")) } },
                 )
         }
     }
@@ -249,7 +250,7 @@ private fun BrandBar(onProfile: () -> Unit) {
                 Glyph("hanger", Modifier.size(23.dp), Teal)
             }
             Spacer(Modifier.width(9.dp))
-            Text("衣序", fontSize = 21.sp, fontWeight = FontWeight.Black, letterSpacing = (-.6).sp)
+            Text(localized("衣序"), fontSize = 21.sp, fontWeight = FontWeight.Black, letterSpacing = (-.6).sp)
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
                 Micro("YIXU / LIGHT", Ink)
@@ -279,25 +280,24 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Glyph("hanger", Modifier.size(28.dp), Ink)
             Spacer(Modifier.width(10.dp))
-            Text("衣序", fontWeight = FontWeight.Black, fontSize = 24.sp)
+            Text(localized("衣序"), fontWeight = FontWeight.Black, fontSize = 24.sp)
             Spacer(Modifier.weight(1f))
             Numeral("01", size = 32.sp, color = DeepTeal)
         }
         Hero(large = true)
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                if (register) "建立你的衣橱" else "欢迎回到衣序",
+            Text(localized(if (register) "建立你的衣橱" else "欢迎回到衣序"),
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Black,
             )
             Micro("PERSONAL WARDROBE / OFFLINE EDITION", DeepTeal)
         }
-        Text("从一件衣物开始，整理属于你的日常。", color = Muted, fontSize = 13.sp)
+        Text(localized("从一件衣物开始，整理属于你的日常。"), color = Muted, fontSize = 13.sp)
         AtelierTextField(
             username,
             { username = it },
-            label = { Text("账号") },
-            placeholder = { Text("3–24 位字母、数字或下划线") },
+            label = { Text(localized("账号")) },
+            placeholder = { Text(localized("3–24 位字母、数字或下划线")) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             shape = SmallPanel,
@@ -306,7 +306,7 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
             AtelierTextField(
                 nickname,
                 { nickname = it },
-                label = { Text("昵称") },
+                label = { Text(localized("昵称")) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = SmallPanel,
@@ -314,8 +314,8 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
         AtelierTextField(
             password,
             { password = it },
-            label = { Text("密码") },
-            placeholder = { Text("至少 8 位字符") },
+            label = { Text(localized("密码")) },
+            placeholder = { Text(localized("至少 8 位字符")) },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
@@ -335,14 +335,13 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             TextButton(onClick = { register = !register }, enabled = !busy) {
-                Text(if (register) "已有账号？去登录" else "还没有账号？创建一个")
+                Text(localized(if (register) "已有账号？去登录" else "还没有账号？创建一个"))
             }
             TextButton(onClick = { vm.perform("已打开示例衣橱") { demo() } }, enabled = !busy) {
-                Text("体验示例衣橱", color = Pink)
+                Text(localized("体验示例衣橱"), color = Pink)
             }
         }
-        Text(
-            "账号和照片仅保存在这台设备。示例衣橱独立存储，可随时切换到自己的账号。",
+        Text(localized("账号和照片仅保存在这台设备。示例衣橱独立存储，可随时切换到自己的账号。"),
             color = Muted,
             fontSize = 11.sp,
             lineHeight = 18.sp,
@@ -401,7 +400,7 @@ fun ClosetScreen(data: Wardrobe, navigate: (String) -> Unit) {
                 AtelierTextField(
                     search,
                     { search = it },
-                    placeholder = { Text("搜索衣物、品牌或位置", fontSize = 13.sp) },
+                    placeholder = { Text(localized("搜索衣物、品牌或位置"), fontSize = 13.sp) },
                     leadingIcon = { Glyph("search", Modifier.size(19.dp), Muted) },
                     singleLine = true,
                     modifier = Modifier.weight(1f),
@@ -418,7 +417,7 @@ fun ClosetScreen(data: Wardrobe, navigate: (String) -> Unit) {
                     ChipRow(listOf("全部颜色") + PaletteNames, color) { color = it }
                     ChipRow(listOf("全部位置") + data.locations, location) { location = it }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("查看已归档衣物", fontSize = 13.sp)
+                        Text(localized("查看已归档衣物"), fontSize = 13.sp)
                         Switch(archived, { archived = it })
                         Spacer(Modifier.weight(1f))
                         TextButton(
@@ -431,7 +430,7 @@ fun ClosetScreen(data: Wardrobe, navigate: (String) -> Unit) {
                                 search = ""
                             }
                         ) {
-                            Text("重置筛选")
+                            Text(localized("重置筛选"))
                         }
                     }
                 }
@@ -525,8 +524,7 @@ fun OutfitsScreen(data: Wardrobe, navigate: (String) -> Unit) {
                     Column(Modifier.weight(1f)) {
                         Text(o.name, fontWeight = FontWeight.Bold, fontSize = 19.sp)
                         Spacer(Modifier.height(4.dp))
-                        Text(
-                            "${o.items.size} 件单品 · ${if(data.pieces(o.items).all{it.care==Care.READY&&!it.archived}) "随时可穿" else "查看衣物状态"}",
+                        Text(localized("${o.items.size} 件单品 · ${if(data.pieces(o.items).all{it.care==Care.READY&&!it.archived}) "随时可穿" else "查看衣物状态"}"),
                             fontSize = 12.sp,
                             color = Muted,
                         )
@@ -561,8 +559,7 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
                     IconTap("back", "上个月", { monthText = month.minusMonths(1).toString() })
                     Column(Modifier.weight(1f)) {
                         Micro("${month.year} / CALENDAR")
-                        Text(
-                            "${month.monthValue} 月",
+                        Text(localized("${month.monthValue} 月"),
                             fontWeight = FontWeight.Black,
                             fontSize = 23.sp,
                         )
@@ -573,7 +570,7 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
                             date = LocalDate.now().toString()
                         }
                     ) {
-                        Text("今天", color = Pink)
+                        Text(localized("今天"), color = Pink)
                     }
                     IconTap("arrow", "下个月", { monthText = month.plusMonths(1).toString() })
                 }
@@ -583,7 +580,7 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
                             Modifier.weight(1f).height(34.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text(it, fontSize = 12.sp, color = Muted)
+                            Text(localized(it), fontSize = 12.sp, color = Muted)
                         }
                     }
                 }
@@ -606,8 +603,7 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
                             ) {
                                 if (valid)
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(
-                                            day.toString(),
+                                        Text(localized(day.toString()),
                                             fontFamily = TechnicalFont,
                                             fontWeight =
                                                 if (d == date || d == LocalDate.now().toString())
@@ -647,12 +643,12 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(5.dp).background(DeepTeal, CircleShape))
                         Spacer(Modifier.width(5.dp))
-                        Text("计划", fontSize = 11.sp, color = Muted)
+                        Text(localized("计划"), fontSize = 11.sp, color = Muted)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(5.dp).background(Pink, CircleShape))
                         Spacer(Modifier.width(5.dp))
-                        Text("实际穿着", fontSize = 11.sp, color = Muted)
+                        Text(localized("实际穿着"), fontSize = 11.sp, color = Muted)
                     }
                 }
             }
@@ -662,8 +658,7 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
         }
         if (plans.isEmpty())
             item {
-                Text(
-                    "这天还没有计划，给日常一点期待。",
+                Text(localized("这天还没有计划，给日常一点期待。"),
                     color = Muted,
                     fontSize = 13.sp,
                     modifier = Modifier.padding(bottom = 8.dp),
@@ -680,7 +675,7 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
                     Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {
                         Text(p.title, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                        Text("${p.items.size} 件单品 · 计划", color = Muted, fontSize = 12.sp)
+                        Text(localized("${p.items.size} 件单品 · 计划"), color = Muted, fontSize = 12.sp)
                     }
                     IconTap("edit", "调整计划", { navigate("plan/${p.id}/$date") })
                     IconTap("close", "删除计划", { deleteId = p.id })
@@ -693,7 +688,7 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (data.pieces(p.items).any { it.care != Care.READY || it.archived })
-                    Text("部分衣物待洗、清洗中或已归档，请确认实际穿着。", color = Pink, fontSize = 12.sp)
+                    Text(localized("部分衣物待洗、清洗中或已归档，请确认实际穿着。"), color = Pink, fontSize = 12.sp)
                 ActionButton(
                     if (existing == null) "确认实际穿着" else if (existing.voided) "穿着记录已撤销" else "已记录穿着",
                     { navigate("confirm/${p.id}") },
@@ -706,7 +701,7 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
         }
         item { SectionTitle("实际穿着", "${wears.size} RECORDS", "手动记录") { navigate("wear/0/$date") } }
         if (wears.isEmpty())
-            item { Text("保存计划不会增加穿着次数，确认已穿后才计入统计。", fontSize = 12.sp, color = Muted) }
+            item { Text(localized("保存计划不会增加穿着次数，确认已穿后才计入统计。"), fontSize = 12.sp, color = Muted) }
         items(wears, key = { it.id }) { w -> WearRow(w, data) { navigate("wear/${w.id}/$date") } }
     }
     if (deleteId != null)
@@ -732,7 +727,7 @@ fun WearRow(w: Wear, data: Wardrobe, onClick: () -> Unit) {
         else Glyph("outfit", Modifier.size(40.dp))
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(w.date, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(localized(w.date), fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text(
                 data.pieces(w.items).joinToString("、") { it.name },
                 fontSize = 12.sp,
@@ -749,7 +744,7 @@ fun WearRow(w: Wear, data: Wardrobe, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis,
                 )
         }
-        if (w.voided) Text("已撤销", color = Pink, fontSize = 11.sp)
+        if (w.voided) Text(localized("已撤销"), color = Pink, fontSize = 11.sp)
         else Glyph("arrow", Modifier.size(18.dp))
     }
 }
@@ -820,12 +815,11 @@ fun CareScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewModel
                         },
                         contentPadding = PaddingValues(0.dp),
                     ) {
-                        Text(
-                            when (state) {
+                        Text(localized(when (state) {
                                 Care.DIRTY -> "开始清洗 →"
                                 Care.WASHING -> "洗好了，恢复可穿 →"
                                 Care.READY -> "标记为待洗 →"
-                            },
+                            }),
                             color = if (state == Care.DIRTY) Pink else Ink,
                             fontSize = 12.sp,
                         )
@@ -878,7 +872,7 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     Micro("穿着记录覆盖", Color(0xFFBBC9C5))
                     Numeral("$worn / ${active.size}", size = 38.sp, color = Color.White)
-                    Text("${period}有穿着记录的衣物", color = Color(0xFFBBC9C5), fontSize = 11.sp)
+                    Text(localized("${period}有穿着记录的衣物"), color = Color(0xFFBBC9C5), fontSize = 11.sp)
                 }
             }
         }
@@ -908,13 +902,12 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
                 Categories.forEach { c ->
                     val n = active.count { it.category == c }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(c, fontSize = 12.sp, modifier = Modifier.width(52.dp))
+                        Text(localized(c), fontSize = 12.sp, modifier = Modifier.width(52.dp))
                         RatioBar(
                             if (active.isEmpty()) 0f else n.toFloat() / active.size,
                             Modifier.weight(1f).height(6.dp),
                         )
-                        Text(
-                            n.toString(),
+                        Text(localized(n.toString()),
                             Modifier.width(30.dp).padding(start = 10.dp),
                             fontFamily = TechnicalFont,
                             fontSize = 16.sp,
@@ -922,12 +915,12 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
                         )
                     }
                 }
-                Text("类别和记录覆盖仅统计未归档衣物。", fontSize = 11.sp, color = Muted)
+                Text(localized("类别和记录覆盖仅统计未归档衣物。"), fontSize = 11.sp, color = Muted)
             }
         }
         item { SectionTitle("记录较多的单品", "MOST RECORDED") }
         if (frequencies.none { it.second > 0 })
-            item { Text("主动记录穿着后，这里会展示登记次数。", color = Muted, fontSize = 13.sp) }
+            item { Text(localized("主动记录穿着后，这里会展示登记次数。"), color = Muted, fontSize = 13.sp) }
         items(frequencies.filter { it.second > 0 }.take(5), key = { it.first.id }) { (g, n) ->
             Row(
                 Modifier.fillMaxWidth()
@@ -940,21 +933,21 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
                 Spacer(Modifier.width(12.dp))
                 Text(g.name, Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 Numeral("$n", size = 30.sp, color = Pink)
-                Text(" 次", fontSize = 12.sp, color = Muted)
+                Text(localized(" 次"), fontSize = 12.sp, color = Muted)
             }
         }
         item {
             SectionTitle("重新发现", "REDISCOVER")
             ChipRow(listOf("30天", "60天", "90天"), idle) { idle = it }
             Spacer(Modifier.height(8.dp))
-            Text("距离最后记录的天数；没有记录时从录入日计算。没有登记不代表没有穿过。", fontSize = 11.sp, color = Muted)
+            Text(localized("距离最后记录的天数；没有记录时从录入日计算。没有登记不代表没有穿过。"), fontSize = 11.sp, color = Muted)
         }
         val forgotten =
             active
                 .filter { data.idleDays(it) >= idle.removeSuffix("天").toInt() }
                 .sortedByDescending { data.idleDays(it) }
         if (forgotten.isEmpty())
-            item { Text("没有超过 $idle 未更新穿着记录的衣物。", fontSize = 13.sp, color = Muted) }
+            item { Text(localized("没有超过 $idle 未更新穿着记录的衣物。"), fontSize = 13.sp, color = Muted) }
         items(forgotten, key = { it.id }) { g ->
             Row(
                 Modifier.fillMaxWidth()
@@ -963,12 +956,11 @@ fun StatsScreen(data: Wardrobe, navigate: (String) -> Unit) {
                     .padding(12.dp)
             ) {
                 Text(g.name, Modifier.weight(1f), fontSize = 14.sp)
-                Text("${data.idleDays(g)} 天无记录", color = Pink, fontSize = 12.sp)
+                Text(localized("${data.idleDays(g)} 天无记录"), color = Pink, fontSize = 12.sp)
             }
         }
         item {
-            Text(
-                "统计以有效实际穿着记录为依据，计划不计入次数。撤销记录后会即时重算，历史不会自动过期。",
+            Text(localized("统计以有效实际穿着记录为依据，计划不计入次数。撤销记录后会即时重算，历史不会自动过期。"),
                 color = Muted,
                 fontSize = 11.sp,
                 lineHeight = 18.sp,
@@ -986,11 +978,11 @@ fun ConfirmDialog(title: String, message: String, onDismiss: () -> Unit, onConfi
         title = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(Modifier.size(32.dp, 4.dp).background(Teal))
-                Text(title, fontWeight = FontWeight.Black, fontSize = 23.sp)
+                Text(localized(title), fontWeight = FontWeight.Black, fontSize = 23.sp)
             }
         },
-        text = { Text(message) },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        text = { Text(localized(message)) },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(localized("取消")) } },
         confirmButton = {
             ActionButton("确认", onConfirm, Modifier.widthIn(min = 108.dp), icon = "check")
         },

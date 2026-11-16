@@ -56,8 +56,7 @@ fun CapsulesScreen(data: Wardrobe, onBack: () -> Unit, navigate: (String) -> Uni
                 )
             }
             item {
-                Text(
-                    "尽量复用已有衣物，留住几套旅行穿搭。行李勾选会保存，方便下次继续收拾。",
+                Text(localized("尽量复用已有衣物，留住几套旅行穿搭。行李勾选会保存，方便下次继续收拾。"),
                     fontSize = 13.sp,
                     lineHeight = 21.sp,
                     color = Muted,
@@ -77,8 +76,7 @@ fun CapsulesScreen(data: Wardrobe, onBack: () -> Unit, navigate: (String) -> Uni
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(c.name, fontSize = 20.sp, fontWeight = FontWeight.Black)
-                            Text(
-                                "${c.items.size} 件 · ${c.looks.size} 套 · 已装 ${c.packed.size}/${c.items.size}",
+                            Text(localized("${c.items.size} 件 · ${c.looks.size} 套 · 已装 ${c.packed.size}/${c.items.size}"),
                                 fontSize = 12.sp,
                                 color = DeepTeal,
                             )
@@ -125,18 +123,18 @@ fun CapsuleBuilder(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) {
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item { Text("少带几件，也能换着穿。", fontSize = 24.sp, fontWeight = FontWeight.Black) }
+            item { Text(localized("少带几件，也能换着穿。"), fontSize = 24.sp, fontWeight = FontWeight.Black) }
             item {
                 AtelierTextField(
                     title,
                     { title = it.take(40) },
                     Modifier.fillMaxWidth(),
-                    label = { Text("这趟叫什么？") },
+                    label = { Text(localized("这趟叫什么？")) },
                     singleLine = true,
                 )
             }
             item {
-                Text("想试几套组合？", fontWeight = FontWeight.Bold)
+                Text(localized("想试几套组合？"), fontWeight = FontWeight.Bold)
                 ChipRow(listOf("3 套", "5 套", "7 套"), "$count 套") {
                     if (!busy) {
                         count = it.substringBefore(' ').toInt()
@@ -145,7 +143,7 @@ fun CapsuleBuilder(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) {
                 }
             }
             item {
-                Text("最多携带多少件？", fontWeight = FontWeight.Bold)
+                Text(localized("最多携带多少件？"), fontWeight = FontWeight.Bold)
                 ChipRow(listOf("6 件", "8 件", "10 件"), "$limit 件") {
                     if (!busy) {
                         limit = it.substringBefore(' ').toInt()
@@ -154,7 +152,7 @@ fun CapsuleBuilder(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) {
                 }
             }
             item {
-                Text("季节", fontWeight = FontWeight.Bold)
+                Text(localized("季节"), fontWeight = FontWeight.Bold)
                 ChipRow(listOf("不限", "春秋", "夏季", "冬季"), season) {
                     if (!busy) {
                         season = it
@@ -216,8 +214,7 @@ fun CapsuleBuilder(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) {
             }
             if (message.isNotBlank())
                 item {
-                    Text(
-                        message,
+                    Text(localized(message),
                         Modifier.fillMaxWidth()
                             .background(Lime.copy(alpha = .4f), SmallPanel)
                             .padding(14.dp),
@@ -252,13 +249,12 @@ fun CapsuleBuilder(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) {
                         notes,
                         { notes = it.take(500) },
                         Modifier.fillMaxWidth(),
-                        label = { Text("另外记一下（如内衣、洗漱用品）") },
+                        label = { Text(localized("另外记一下（如内衣、洗漱用品）")) },
                     )
                 }
             }
             item {
-                Text(
-                    "只组合已登记衣物，按类别、季节及颜色规则生成。鞋可在多套之间复用；套数以不同上下装或连衣裙计算。请自行检查天气、干净程度和贴身衣物等必需品。",
+                Text(localized("只组合已登记衣物，按类别、季节及颜色规则生成。鞋可在多套之间复用；套数以不同上下装或连衣裙计算。请自行检查天气、干净程度和贴身衣物等必需品。"),
                     color = Muted,
                     fontSize = 12.sp,
                     lineHeight = 20.sp,
@@ -298,7 +294,7 @@ fun CapsuleDetail(
     var editing by remember { mutableStateOf(false) }
     val pieces = state.data.pieces(c.items)
     Column(Modifier.fillMaxSize()) {
-        DetailTop(c.name, onBack, "YOUR TRAVEL CAPSULE")
+        DetailTop(c.name, onBack, "YOUR TRAVEL CAPSULE", translateTitle = false)
         LazyColumn(
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -315,8 +311,7 @@ fun CapsuleDetail(
             item { ChipRow(listOf("拿衣清单", "穿搭组合"), page) { page = it } }
             if (page == "拿衣清单") {
                 item {
-                    Text(
-                        "位置是上次登记的记录。勾选会保存在这份行李胶囊里，不计入穿着历史。",
+                    Text(localized("位置是上次登记的记录。勾选会保存在这份行李胶囊里，不计入穿着历史。"),
                         fontSize = 12.sp,
                         color = Muted,
                         lineHeight = 20.sp,
@@ -349,16 +344,15 @@ fun CapsuleDetail(
                                 Column(Modifier.weight(1f).padding(start = 10.dp)) {
                                     Text(g.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                     if (g.archived)
-                                        Text("已归档，出发前确认一下", fontSize = 12.sp, color = Pink)
-                                    else Text(g.category, color = Muted, fontSize = 12.sp)
+                                        Text(localized("已归档，出发前确认一下"), fontSize = 12.sp, color = Pink)
+                                    else Text(localized(g.category), color = Muted, fontSize = 12.sp)
                                 }
                             }
                         }
                     }
                 if (c.packed.size == c.items.size)
                     item {
-                        Text(
-                            "这一小份，已经装好。",
+                        Text(localized("这一小份，已经装好。"),
                             fontSize = 23.sp,
                             fontWeight = FontWeight.Black,
                             color = DeepTeal,
@@ -369,7 +363,7 @@ fun CapsuleDetail(
                         onClick = { vm.perform("已重新打开清单") { resetCapsulePacked(c.id) } },
                         enabled = !state.busy,
                     ) {
-                        Text("清空勾选，再用一次")
+                        Text(localized("清空勾选，再用一次"))
                     }
                 }
             } else {
@@ -401,8 +395,8 @@ fun CapsuleDetail(
                 }
             item {
                 Row {
-                    TextButton(onClick = { editing = true }) { Text("名称与备注") }
-                    TextButton(onClick = { deleting = true }) { Text("删除这份胶囊", color = Muted) }
+                    TextButton(onClick = { editing = true }) { Text(localized("名称与备注")) }
+                    TextButton(onClick = { deleting = true }) { Text(localized("删除这份胶囊"), color = Muted) }
                 }
             }
         }
@@ -426,23 +420,23 @@ private fun CapsuleInfoDialog(c: Capsule, onDismiss: () -> Unit, onSave: (String
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = Panel,
-        title = { Text("名称与备注") },
+        title = { Text(localized("名称与备注")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 AtelierTextField(
                     name,
                     { name = it.take(40) },
-                    label = { Text("名称") },
+                    label = { Text(localized("名称")) },
                     singleLine = true,
                 )
-                AtelierTextField(notes, { notes = it.take(500) }, label = { Text("另外记一下") })
+                AtelierTextField(notes, { notes = it.take(500) }, label = { Text(localized("另外记一下")) })
             }
         },
         confirmButton = {
             TextButton(onClick = { onSave(name, notes) }, enabled = name.isNotBlank()) {
-                Text("保存修改")
+                Text(localized("保存修改"))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(localized("取消")) } },
     )
 }

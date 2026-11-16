@@ -105,8 +105,7 @@ fun InspirationScreen(
         ) {
             item {
                 if (onBack == null) ModuleHeading("今天，换种组合", "02 / A LITTLE SURPRISE")
-                Text(
-                    "锁住喜欢的单品，其余交给一点随机。",
+                Text(localized("锁住喜欢的单品，其余交给一点随机。"),
                     color = Muted,
                     fontSize = 13.sp,
                     modifier = Modifier.padding(top = 6.dp),
@@ -117,27 +116,27 @@ fun InspirationScreen(
                     TextButton(onClick = { filters = !filters }) {
                         Glyph("filter", Modifier.size(18.dp), DeepTeal)
                         Spacer(Modifier.width(6.dp))
-                        Text(if (filters) "收起搭配条件" else "搭配条件")
+                        Text(localized(if (filters) "收起搭配条件" else "搭配条件"))
                     }
                     Spacer(Modifier.weight(1f))
-                    TextButton(onClick = { navigate("saved") }) { Text("我的收藏 →") }
+                    TextButton(onClick = { navigate("saved") }) { Text(localized("我的收藏 →")) }
                 }
                 RevealPanel(filters) {
                     Column(
                         Modifier.fillMaxWidth().background(Color.White, Panel).padding(14.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Text("季节", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text(localized("季节"), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         ChipRow(listOf("不限", "春秋", "夏季", "冬季"), season) {
                             season = it
                             generate(request.copy(season = it))
                         }
-                        Text("组合方式", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text(localized("组合方式"), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         ChipRow(listOf("自动", "上下装", "连衣裙"), structure) {
                             structure = it
                             generate(request.copy(structure = it))
                         }
-                        Text("款式倾向", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text(localized("款式倾向"), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         ChipRow(listOf("随心", "通勤", "休闲", "运动"), mood) {
                             mood = it
                             generate(request.copy(mood = it))
@@ -167,8 +166,7 @@ fun InspirationScreen(
             }
             if (problem.isNotBlank())
                 item {
-                    Text(
-                        problem,
+                    Text(localized(problem),
                         Modifier.fillMaxWidth()
                             .background(Lime.copy(alpha = .35f), SmallPanel)
                             .padding(13.dp),
@@ -196,8 +194,7 @@ fun InspirationScreen(
                         ) {
                             Column(Modifier.weight(1f)) {
                                 Micro("FOUND IN YOUR OWN WARDROBE", DeepTeal)
-                                Text(
-                                    "这一套，你已经拥有",
+                                Text(localized("这一套，你已经拥有"),
                                     fontSize = 21.sp,
                                     fontWeight = FontWeight.Black,
                                     modifier = Modifier.padding(top = 6.dp),
@@ -210,8 +207,7 @@ fun InspirationScreen(
                 if (locked.isNotEmpty() || excluded.isNotEmpty())
                     item {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                "锁定 ${locked.size} 件 · 本轮跳过 ${excluded.size} 件",
+                            Text(localized("锁定 ${locked.size} 件 · 本轮跳过 ${excluded.size} 件"),
                                 Modifier.weight(1f),
                                 fontSize = 12.sp,
                                 color = DeepTeal,
@@ -223,13 +219,12 @@ fun InspirationScreen(
                                     generate(pins = emptySet(), skips = emptySet())
                                 }
                             ) {
-                                Text("重置")
+                                Text(localized("重置"))
                             }
                         }
                     }
                 item {
-                    Text(
-                        "点衣物可锁定 · " + explanation,
+                    Text(localized("点衣物可锁定 · " + explanation),
                         color = Muted,
                         fontSize = 12.sp,
                         lineHeight = 19.sp,
@@ -264,7 +259,7 @@ fun InspirationScreen(
                                             .joinToString(",")
                                 }
                             ) {
-                                Text(if (g.id in locked) "已锁定" else "锁住这件")
+                                Text(localized(if (g.id in locked) "已锁定" else "锁住这件"))
                             }
                         }
                         Row {
@@ -272,7 +267,7 @@ fun InspirationScreen(
                                 onClick = { generate(replace = g.id) },
                                 enabled = g.id !in locked,
                             ) {
-                                Text("换这一件")
+                                Text(localized("换这一件"))
                             }
                             TextButton(
                                 onClick = {
@@ -283,14 +278,13 @@ fun InspirationScreen(
                                     generate(pins = pins, skips = skips)
                                 }
                             ) {
-                                Text("本轮不选", color = Muted)
+                                Text(localized("本轮不选"), color = Muted)
                             }
                         }
                     }
                 }
                 item {
-                    Text(
-                        "依据你登记的类别、颜色、季节与款式组合。不会推断你穿过什么，也不要求维护洗护状态。",
+                    Text(localized("依据你登记的类别、颜色、季节与款式组合。不会推断你穿过什么，也不要求维护洗护状态。"),
                         fontSize = 11.sp,
                         lineHeight = 18.sp,
                         color = Muted,
@@ -365,8 +359,7 @@ fun SavedLooks(data: Wardrobe, onBack: () -> Unit, navigate: (String) -> Unit) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(o.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                            Text(
-                                "${o.items.size} 件单品 · ${o.occasion}",
+                            Text(localized("${o.items.size} 件单品 · ${o.occasion}"),
                                 fontSize = 12.sp,
                                 color = Muted,
                             )
@@ -398,7 +391,7 @@ fun LightOutfitDetail(
             item { OutfitMontage(pieces, Modifier.fillMaxWidth().height(230.dp).clip(Panel)) }
             item {
                 Text(o.name, fontSize = 25.sp, fontWeight = FontWeight.Black)
-                Text(o.occasion, color = Muted)
+                Text(localized(o.occasion), color = Muted)
             }
             item {
                 ActionButton(
@@ -424,8 +417,8 @@ fun LightOutfitDetail(
             }
             item {
                 Row {
-                    TextButton(onClick = { navigate("planoutfit/${o.id}") }) { Text("安排日期（可选）") }
-                    TextButton(onClick = { deleting = true }) { Text("删除收藏", color = Muted) }
+                    TextButton(onClick = { navigate("planoutfit/${o.id}") }) { Text(localized("安排日期（可选）")) }
+                    TextButton(onClick = { deleting = true }) { Text(localized("删除收藏"), color = Muted) }
                 }
             }
         }
@@ -457,8 +450,7 @@ fun PickupChecklist(data: Wardrobe, ids: List<Long>, onBack: () -> Unit) {
                 )
             }
             item {
-                Text(
-                    "这是上次登记的位置。勾选只用于这份清单，不会生成穿着或洗护记录。",
+                Text(localized("这是上次登记的位置。勾选只用于这份清单，不会生成穿着或洗护记录。"),
                     color = Muted,
                     fontSize = 12.sp,
                     lineHeight = 20.sp,
@@ -484,21 +476,20 @@ fun PickupChecklist(data: Wardrobe, ids: List<Long>, onBack: () -> Unit) {
                             GarmentArt(g, Modifier.size(55.dp).clip(SmallPanel))
                             Column(Modifier.weight(1f).padding(start = 12.dp)) {
                                 Text(g.name, fontWeight = FontWeight.Bold)
-                                if (g.archived) Text("已归档，拿之前确认一下", color = Pink, fontSize = 12.sp)
+                                if (g.archived) Text(localized("已归档，拿之前确认一下"), color = Pink, fontSize = 12.sp)
                             }
                         }
                     }
                 }
             if (pieces.isNotEmpty() && checked.size == pieces.size)
                 item {
-                    Text(
-                        "拿齐了，出门吧。",
+                    Text(localized("拿齐了，出门吧。"),
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Black,
                         color = DeepTeal,
                     )
                 }
-            item { TextButton(onClick = { checkedText = "" }) { Text("重新开始这份清单") } }
+            item { TextButton(onClick = { checkedText = "" }) { Text(localized("重新开始这份清单")) } }
         }
     }
 }

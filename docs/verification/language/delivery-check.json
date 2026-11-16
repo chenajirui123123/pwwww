@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0-alpha2",
+  "application_id": "com.wardrobe.atelier.light",
+  "apk_sha256": "cc2d8b604ff4a539f242606ebcb3f735eca6d2de10e74586633df1b9306fdd79",
+  "unit_tests": 22,
+  "unit_failures": 0,
+  "android_full_suite": 22,
+  "language_journey_final": 1,
+  "device": "Android 16 API 36 emulator",
+  "physical_device_verified": false
+}

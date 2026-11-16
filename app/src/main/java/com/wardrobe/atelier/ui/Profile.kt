@@ -88,18 +88,16 @@ fun ProfileScreen(
                     verticalArrangement = Arrangement.spacedBy(9.dp),
                 ) {
                     Micro("ABOUT / 衣序轻量版 2.0")
-                    Text("让衣物有归处，让穿搭有灵感。", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    Text(
-                        "本机离线保存。无需每天维护洗护或穿着状态；找衣与搭配不依赖这些记录。不同账号的数据彼此独立。",
+                    Text(localized("让衣物有归处，让穿搭有灵感。"), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(localized("本机离线保存。无需每天维护洗护或穿着状态；找衣与搭配不依赖这些记录。不同账号的数据彼此独立。"),
                         color = Muted,
                         fontSize = 12.sp,
                     )
-                    Text(
-                        "计划不会自动计入穿着次数；历史不会在 30 天后自动删除。统计页的 30 / 60 / 90 天仅用于查看无记录的时长，不代表衣物没有穿过。",
+                    Text(localized("计划不会自动计入穿着次数；历史不会在 30 天后自动删除。统计页的 30 / 60 / 90 天仅用于查看无记录的时长，不代表衣物没有穿过。"),
                         color = Muted,
                         fontSize = 12.sp,
                     )
-                    Text("卸载应用或清除应用数据会移除本机内容，请提前导出备份。", color = Pink, fontSize = 12.sp)
+                    Text(localized("卸载应用或清除应用数据会移除本机内容，请提前导出备份。"), color = Pink, fontSize = 12.sp)
                 }
             }
             item {
@@ -111,22 +109,22 @@ fun ProfileScreen(
         AlertDialog(
             onDismissRequest = { rename = false },
             shape = Panel,
-            title = { Text("修改昵称") },
+            title = { Text(localized("修改昵称")) },
             text = {
                 AtelierTextField(
                     nick,
                     { nick = it.take(20) },
                     singleLine = true,
-                    label = { Text("昵称") },
+                    label = { Text(localized("昵称")) },
                 )
             },
-            dismissButton = { TextButton(onClick = { rename = false }) { Text("取消") } },
+            dismissButton = { TextButton(onClick = { rename = false }) { Text(localized("取消")) } },
             confirmButton = {
                 TextButton(
                     enabled = !state.busy,
                     onClick = { vm.perform("昵称已更新", { rename = false }) { rename(nick) } },
                 ) {
-                    Text("保存")
+                    Text(localized("保存"))
                 }
             },
         )
@@ -138,21 +136,21 @@ fun ProfileScreen(
                 newPass = ""
             },
             shape = Panel,
-            title = { Text("修改密码") },
+            title = { Text(localized("修改密码")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     AtelierTextField(
                         oldPass,
                         { oldPass = it },
                         singleLine = true,
-                        label = { Text("原密码") },
+                        label = { Text(localized("原密码")) },
                         visualTransformation = PasswordVisualTransformation(),
                     )
                     AtelierTextField(
                         newPass,
                         { newPass = it },
                         singleLine = true,
-                        label = { Text("新密码，至少 8 位") },
+                        label = { Text(localized("新密码，至少 8 位")) },
                         visualTransformation = PasswordVisualTransformation(),
                     )
                 }
@@ -165,7 +163,7 @@ fun ProfileScreen(
                         newPass = ""
                     }
                 ) {
-                    Text("取消")
+                    Text(localized("取消"))
                 }
             },
             confirmButton = {
@@ -184,7 +182,7 @@ fun ProfileScreen(
                         }
                     },
                 ) {
-                    Text("保存")
+                    Text(localized("保存"))
                 }
             },
         )
@@ -213,8 +211,8 @@ fun ProfileRow(icon: String, title: String, subtitle: String, onClick: () -> Uni
         }
         Spacer(Modifier.width(15.dp))
         Column(Modifier.weight(1f)) {
-            Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-            Text(subtitle, color = Muted, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+            Text(localized(title), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            Text(localized(subtitle), color = Muted, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
         }
         Glyph("arrow", Modifier.size(18.dp), Muted)
     }
@@ -240,7 +238,7 @@ fun LocationScreen(data: Wardrobe, vm: WardrobeViewModel, onBack: () -> Unit) {
                     AtelierTextField(
                         value,
                         { value = it.take(40) },
-                        label = { Text("新位置名称") },
+                        label = { Text(localized("新位置名称")) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         shape = SmallPanel,
@@ -251,7 +249,7 @@ fun LocationScreen(data: Wardrobe, vm: WardrobeViewModel, onBack: () -> Unit) {
                     )
                 }
             }
-            item { Text("重命名位置会同步更新相关衣物，不改变洗护状态。", fontSize = 12.sp, color = Muted) }
+            item { Text(localized("重命名位置会同步更新相关衣物，不改变洗护状态。"), fontSize = 12.sp, color = Muted) }
             items(data.locations) { name ->
                 Row(
                     Modifier.fillMaxWidth().background(Color.White, SmallPanel).padding(12.dp),
@@ -282,9 +280,9 @@ fun LocationScreen(data: Wardrobe, vm: WardrobeViewModel, onBack: () -> Unit) {
         AlertDialog(
             onDismissRequest = { editing = null },
             shape = Panel,
-            title = { Text("重命名位置") },
+            title = { Text(localized("重命名位置")) },
             text = { AtelierTextField(editValue, { editValue = it.take(40) }, singleLine = true) },
-            dismissButton = { TextButton(onClick = { editing = null }) { Text("取消") } },
+            dismissButton = { TextButton(onClick = { editing = null }) { Text(localized("取消")) } },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -292,7 +290,7 @@ fun LocationScreen(data: Wardrobe, vm: WardrobeViewModel, onBack: () -> Unit) {
                         vm.perform("位置已更新", { editing = null }) { renameLocation(old, editValue) }
                     }
                 ) {
-                    Text("保存")
+                    Text(localized("保存"))
                 }
             },
         )
@@ -331,7 +329,7 @@ fun HistoryScreen(data: Wardrobe, onBack: () -> Unit, navigate: (String) -> Unit
             }
             item {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("显示已撤销记录", fontSize = 13.sp)
+                    Text(localized("显示已撤销记录"), fontSize = 13.sp)
                     Switch(showVoided, { showVoided = it })
                     Spacer(Modifier.weight(1f))
                     TextButton(
@@ -340,12 +338,12 @@ fun HistoryScreen(data: Wardrobe, onBack: () -> Unit, navigate: (String) -> Unit
                             to = ""
                         }
                     ) {
-                        Text("清除日期")
+                        Text(localized("清除日期"))
                     }
                 }
             }
             if (from.isNotBlank() && to.isNotBlank() && from > to)
-                item { Text("起始日期不能晚于结束日期", color = Pink) }
+                item { Text(localized("起始日期不能晚于结束日期"), color = Pink) }
             item {
                 ActionButton(
                     "记录实际穿着",
@@ -389,11 +387,11 @@ fun CareHistory(data: Wardrobe, onBack: () -> Unit, garmentId: Long = 0) {
                         to = ""
                     }
                 ) {
-                    Text("清除日期")
+                    Text(localized("清除日期"))
                 }
             }
             if (from.isNotBlank() && to.isNotBlank() && from > to)
-                item { Text("起始日期不能晚于结束日期", color = Pink) }
+                item { Text(localized("起始日期不能晚于结束日期"), color = Pink) }
             if (logs.isEmpty()) item { EmptyPanel("暂无洗护变化", "每次实际状态变更都会在这里留下记录。") }
             items(logs, key = { it.id }) { log ->
                 val g = data.garments.find { it.id == log.garmentId }
@@ -405,8 +403,7 @@ fun CareHistory(data: Wardrobe, onBack: () -> Unit, garmentId: Long = 0) {
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
                         Text(g?.name ?: "历史衣物", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text(
-                            "${log.before.label} → ${log.after.label}",
+                        Text(localized("${log.before.label} → ${log.after.label}"),
                             color = Ink,
                             fontSize = 13.sp,
                             modifier = Modifier.padding(top = 4.dp),

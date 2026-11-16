@@ -1,0 +1,2 @@
+PASS: completed English switch survives force-stop and fresh-process launch
+PASS: switched back to Chinese through UI

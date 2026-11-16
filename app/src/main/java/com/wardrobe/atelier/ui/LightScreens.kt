@@ -32,12 +32,13 @@ private fun parseIds(value: String) = value.split(',').mapNotNull { it.toLongOrN
 
 @Composable
 fun LightWelcome(vm: WardrobeViewModel, busy: Boolean, incomingImage: Boolean = false) {
+    LanguagePreferences.initialize(androidx.compose.ui.platform.LocalContext.current)
     var accounts by rememberSaveable { mutableStateOf(false) }
     if (accounts) {
         BackHandler { accounts = false }
         Column(Modifier.fillMaxSize()) {
             TextButton(onClick = { accounts = false }, modifier = Modifier.statusBarsPadding()) {
-                Text("← 返回轻量入口")
+                Text(localized("← 返回轻量入口"))
             }
             Box(Modifier.weight(1f)) { AuthScreen(vm, busy) }
         }
@@ -50,10 +51,10 @@ fun LightWelcome(vm: WardrobeViewModel, busy: Boolean, incomingImage: Boolean = 
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
+        LanguageSelector()
         Row(verticalAlignment = Alignment.CenterVertically) {
             Glyph("hanger", Modifier.size(30.dp), DeepTeal)
-            Text(
-                "衣序",
+            Text(localized("衣序"),
                 Modifier.padding(start = 12.dp),
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Black,
@@ -62,8 +63,7 @@ fun LightWelcome(vm: WardrobeViewModel, busy: Boolean, incomingImage: Boolean = 
             Micro("LESS INPUT. MORE IDEAS.")
         }
         if (incomingImage)
-            Text(
-                "已收到图片，先选择一个衣橱，再继续录入。",
+            Text(localized("已收到图片，先选择一个衣橱，再继续录入。"),
                 Modifier.fillMaxWidth()
                     .background(Lime.copy(alpha = .5f), SmallPanel)
                     .padding(12.dp),
@@ -76,8 +76,8 @@ fun LightWelcome(vm: WardrobeViewModel, busy: Boolean, incomingImage: Boolean = 
             R.drawable.collection_stage,
             large = true,
         )
-        Text("少一点管理，多一点好穿。", fontSize = 23.sp, fontWeight = FontWeight.Black)
-        Text("知道衣服放哪儿，试试没想到的组合。\n不用每天登记穿着，也不用记录洗衣服。", color = Muted, lineHeight = 24.sp)
+        Text(localized("少一点管理，多一点好穿。"), fontSize = 23.sp, fontWeight = FontWeight.Black)
+        Text(localized("知道衣服放哪儿，试试没想到的组合。\n不用每天登记穿着，也不用记录洗衣服。"), color = Muted, lineHeight = 24.sp)
         ActionButton(
             "直接开始我的衣橱",
             { vm.perform(null) { openLocalWardrobe() } },
@@ -92,9 +92,8 @@ fun LightWelcome(vm: WardrobeViewModel, busy: Boolean, incomingImage: Boolean = 
             secondary = true,
             enabled = !busy,
         )
-        TextButton(onClick = { accounts = true }, enabled = !busy) { Text("已有独立账号？登录或注册") }
-        Text(
-            "本机空间无需密码，打开这台设备即可进入。数据只保存在本机，可在“我的”导出加密备份。",
+        TextButton(onClick = { accounts = true }, enabled = !busy) { Text(localized("已有独立账号？登录或注册")) }
+        Text(localized("本机空间无需密码，打开这台设备即可进入。数据只保存在本机，可在“我的”导出加密备份。"),
             color = Muted,
             fontSize = 12.sp,
             lineHeight = 19.sp,
@@ -122,7 +121,7 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
     val matching =
         data.garments.filter {
             it.archived == archived &&
-                WardrobeSearch.matches(it, query) &&
+                matchesLocalized(it, query) &&
                 (category == "全部" || it.category == category) &&
                 (location == "全部位置" || it.location == location)
         }
@@ -140,13 +139,12 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
             }
             item {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${data.active.size} 件衣物，记在这里就好。",
+                    Text(localized("${data.active.size} 件衣物，记在这里就好。"),
                         Modifier.weight(1f),
                         color = Muted,
                         fontSize = 13.sp,
                     )
-                    TextButton(onClick = { navigate("batch") }) { Text("批量录入", fontSize = 12.sp) }
+                    TextButton(onClick = { navigate("batch") }) { Text(localized("批量录入"), fontSize = 12.sp) }
                 }
             }
             item {
@@ -154,7 +152,7 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
                     query,
                     { query = it },
                     Modifier.fillMaxWidth(),
-                    placeholder = { Text("蓝色外套 / 宿舍 / 围巾", fontSize = 14.sp) },
+                    placeholder = { Text(localized("蓝色外套 / 宿舍 / 围巾"), fontSize = 14.sp) },
                     leadingIcon = { Glyph("search", Modifier.size(21.dp)) },
                     trailingIcon =
                         if (query.isNotBlank()) {
@@ -175,7 +173,7 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
             item {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { byPlace = !byPlace }) {
-                        Text(if (byPlace) "切回衣物视图" else "按位置找")
+                        Text(localized(if (byPlace) "切回衣物视图" else "按位置找"))
                     }
                     TextButton(
                         onClick = {
@@ -184,23 +182,22 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
                             selectedText = ""
                         }
                     ) {
-                        Text(if (selecting) "取消整理" else "整理位置")
+                        Text(localized(if (selecting) "取消整理" else "整理位置"))
                     }
                     Spacer(Modifier.weight(1f))
                     TextButton(onClick = { archived = !archived }) {
-                        Text(if (archived) "返回在用" else "归档", color = Muted)
+                        Text(localized(if (archived) "返回在用" else "归档"), color = Muted)
                     }
                 }
                 if (location != "全部位置")
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Tag(location, true)
-                        TextButton(onClick = { location = "全部位置" }) { Text("清除位置") }
+                        TextButton(onClick = { location = "全部位置" }) { Text(localized("清除位置")) }
                     }
             }
             if (byPlace) {
                 item {
-                    Text(
-                        "这里是上次登记的位置；换柜或换季收纳时，再批量更新。",
+                    Text(localized("这里是上次登记的位置；换柜或换季收纳时，再批量更新。"),
                         color = Muted,
                         fontSize = 12.sp,
                         lineHeight = 19.sp,
@@ -220,8 +217,7 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Glyph("archive", Modifier.size(22.dp), DeepTeal)
-                            Text(
-                                place,
+                            Text(localized(place),
                                 Modifier.weight(1f).padding(start = 10.dp),
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
@@ -252,7 +248,7 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
                                     location = "全部位置"
                                 }
                             ) {
-                                Text("重置筛选")
+                                Text(localized("重置筛选"))
                             }
                     }
                 }
@@ -288,7 +284,7 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
                 Modifier.fillMaxWidth().background(Color.White).padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("已选 ${selected.size} 件", Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                Text(localized("已选 ${selected.size} 件"), Modifier.weight(1f), fontWeight = FontWeight.Bold)
                 val visibleIds = matching.map { it.id }.toSet()
                 val allVisibleSelected = visibleIds.isNotEmpty() && selected.containsAll(visibleIds)
                 TextButton(
@@ -300,7 +296,7 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
                     },
                     enabled = visibleIds.isNotEmpty(),
                 ) {
-                    Text(if (allVisibleSelected) "取消当前全选" else "全选当前结果")
+                    Text(localized(if (allVisibleSelected) "取消当前全选" else "全选当前结果"))
                 }
                 ActionButton("移至…", { moving = true }, enabled = selected.isNotEmpty())
             }
@@ -370,22 +366,22 @@ fun MoveDialog(locations: List<String>, onDismiss: () -> Unit, onMove: (String) 
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = Panel,
-        title = { Text("现在放在哪里？") },
+        title = { Text(localized("现在放在哪里？")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("只更新位置，不增加穿着或洗护记录。", color = Muted, fontSize = 12.sp)
+                Text(localized("只更新位置，不增加穿着或洗护记录。"), color = Muted, fontSize = 12.sp)
                 ChipRow(locations, place) { place = it }
                 AtelierTextField(
                     place,
                     { place = it.take(40) },
-                    label = { Text("位置，例如 宿舍衣柜 · 上层") },
+                    label = { Text(localized("位置，例如 宿舍衣柜 · 上层")) },
                     singleLine = true,
                 )
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(localized("取消")) } },
         confirmButton = {
-            TextButton(onClick = { onMove(place) }, enabled = place.isNotBlank()) { Text("更新位置") }
+            TextButton(onClick = { onMove(place) }, enabled = place.isNotBlank()) { Text(localized("更新位置")) }
         },
     )
 }
@@ -464,9 +460,8 @@ fun QuickGarmentEditor(
                     }
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text("照片也可以以后补", fontWeight = FontWeight.Bold)
-                    Text(
-                        "商品截图或相册照片都可以。\n也能从相册“分享”到衣序。",
+                    Text(localized("照片也可以以后补"), fontWeight = FontWeight.Bold)
+                    Text(localized("商品截图或相册照片都可以。\n也能从相册“分享”到衣序。"),
                         fontSize = 12.sp,
                         lineHeight = 19.sp,
                         color = Muted,
@@ -477,18 +472,18 @@ fun QuickGarmentEditor(
                         },
                         enabled = !state.busy,
                     ) {
-                        Text(if (image.isBlank()) "选择照片" else "更换照片")
+                        Text(localized(if (image.isBlank()) "选择照片" else "更换照片"))
                     }
                 }
             }
             if (image.isNotBlank())
-                TextButton(onClick = { image = "" }) { Text("移除照片", color = Muted) }
-            Text("是什么衣物？", fontWeight = FontWeight.Bold)
+                TextButton(onClick = { image = "" }) { Text(localized("移除照片"), color = Muted) }
+            Text(localized("是什么衣物？"), fontWeight = FontWeight.Bold)
             ChipRow(Categories, category) {
                 category = it
                 style = ""
             }
-            Text("放在哪里？", fontWeight = FontWeight.Bold)
+            Text(localized("放在哪里？"), fontWeight = FontWeight.Bold)
             ChipRow(
                 (listOf("待放置") +
                         state.data.locations +
@@ -502,26 +497,26 @@ fun QuickGarmentEditor(
                 location,
                 { location = it.take(40) },
                 Modifier.fillMaxWidth(),
-                label = { Text("位置，可细到柜子和层板") },
+                label = { Text(localized("位置，可细到柜子和层板")) },
                 singleLine = true,
             )
             AtelierTextField(
                 name,
                 { name = it.take(40) },
                 Modifier.fillMaxWidth(),
-                label = { Text("名字（可不填，自动命名）") },
+                label = { Text(localized("名字（可不填，自动命名）")) },
                 singleLine = true,
             )
             TextButton(onClick = { expanded = !expanded }) {
-                Text(if (expanded) "收起可选信息 ↑" else "颜色、季节和更多信息（可后补） ↓")
+                Text(localized(if (expanded) "收起可选信息 ↑" else "颜色、季节和更多信息（可后补） ↓"))
             }
             RevealPanel(expanded) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("颜色", fontWeight = FontWeight.Bold)
+                    Text(localized("颜色"), fontWeight = FontWeight.Bold)
                     ChipRow(PaletteNames, color) { color = it }
-                    Text("季节", fontWeight = FontWeight.Bold)
+                    Text(localized("季节"), fontWeight = FontWeight.Bold)
                     ChipRow(Seasons, season) { season = it }
-                    Text("款式", fontWeight = FontWeight.Bold)
+                    Text(localized("款式"), fontWeight = FontWeight.Bold)
                     ChipRow(
                         listOf("未标注") + Silhouettes.getValue(category),
                         style.ifBlank { "未标注" },
@@ -532,14 +527,14 @@ fun QuickGarmentEditor(
                         brand,
                         { brand = it.take(40) },
                         Modifier.fillMaxWidth(),
-                        label = { Text("品牌（选填）") },
+                        label = { Text(localized("品牌（选填）")) },
                         singleLine = true,
                     )
                     AtelierTextField(
                         price,
                         { price = it },
                         Modifier.fillMaxWidth(),
-                        label = { Text("价格（选填）") },
+                        label = { Text(localized("价格（选填）")) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         singleLine = true,
                     )
@@ -547,7 +542,7 @@ fun QuickGarmentEditor(
                         notes,
                         { notes = it.take(500) },
                         Modifier.fillMaxWidth(),
-                        label = { Text("备注（选填）") },
+                        label = { Text(localized("备注（选填）")) },
                     )
                 }
             }
@@ -557,8 +552,7 @@ fun QuickGarmentEditor(
                     Modifier.fillMaxWidth().background(Color.White, Panel).padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Text(
-                        "衣橱里已有 ${similar.size} 件${if (color == "其他") "同类别" else "同色同类别"}衣物",
+                    Text(localized("衣橱里已有 ${similar.size} 件${if (color == "其他") "同类别" else "同色同类别"}衣物"),
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                     )
@@ -567,7 +561,7 @@ fun QuickGarmentEditor(
                         color = Muted,
                         fontSize = 12.sp,
                     )
-                    Text("仅按你填写的类别和颜色对照，方便买前看一眼。", color = Muted, fontSize = 11.sp)
+                    Text(localized("仅按你填写的类别和颜色对照，方便买前看一眼。"), color = Muted, fontSize = 11.sp)
                 }
             }
         }
@@ -611,7 +605,7 @@ fun LightGarmentDetail(
             item { GarmentArt(g, Modifier.fillMaxWidth().height(235.dp).clip(Panel)) }
             item {
                 Text(g.name, fontSize = 26.sp, fontWeight = FontWeight.Black)
-                Text("${g.category} · ${g.color} · ${g.season}", color = Muted, fontSize = 13.sp)
+                Text(localized("${g.category} · ${g.color} · ${g.season}"), color = Muted, fontSize = 13.sp)
             }
             item {
                 Column(
@@ -625,7 +619,7 @@ fun LightGarmentDetail(
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                     )
-                    TextButton(onClick = { move = true }) { Text("换位置了？更新一下 →", color = Teal) }
+                    TextButton(onClick = { move = true }) { Text(localized("换位置了？更新一下 →"), color = Teal) }
                 }
             }
             item {
@@ -650,10 +644,10 @@ fun LightGarmentDetail(
             item {
                 Row {
                     TextButton(onClick = { archive = true }) {
-                        Text(if (g.archived) "恢复衣物" else "归档衣物")
+                        Text(localized(if (g.archived) "恢复衣物" else "归档衣物"))
                     }
                     TextButton(onClick = { navigate("legacydetail/${g.id}") }) {
-                        Text("更多档案与记录", color = Muted)
+                        Text(localized("更多档案与记录"), color = Muted)
                     }
                 }
             }
@@ -680,7 +674,8 @@ fun LightProfile(state: AppState, vm: WardrobeViewModel, navigate: (String) -> U
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item { ModuleHeading("用到时，再来就好", "03 / YOUR OWN RHYTHM") }
-        item { Text("这里没有每日任务。你的衣物和灵感，会留在这里。", color = Muted, lineHeight = 21.sp) }
+        item { LanguageSelector() }
+        item { Text(localized("这里没有每日任务。你的衣物和灵感，会留在这里。"), color = Muted, lineHeight = 21.sp) }
         item {
             CollectionMetrics(
                 listOf(
@@ -697,8 +692,7 @@ fun LightProfile(state: AppState, vm: WardrobeViewModel, navigate: (String) -> U
         item { BackupPanel(vm, state) }
         item { SectionTitle("可选工具", "ONLY IF YOU NEED THEM") }
         item {
-            Text(
-                "喜欢记录时再用。不使用这些工具，也能完整找衣和获得搭配灵感。",
+            Text(localized("喜欢记录时再用。不使用这些工具，也能完整找衣和获得搭配灵感。"),
                 color = Muted,
                 fontSize = 12.sp,
                 lineHeight = 19.sp,
@@ -722,7 +716,7 @@ fun PurchaseCompare(data: Wardrobe, onBack: () -> Unit, navigate: (String) -> Un
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item { Text("购物前，先看看自己已有的。", fontSize = 22.sp, fontWeight = FontWeight.Black) }
+            item { Text(localized("购物前，先看看自己已有的。"), fontSize = 22.sp, fontWeight = FontWeight.Black) }
             item { ChipRow(Categories, category) { category = it } }
             item {
                 ChipRow(
@@ -733,7 +727,7 @@ fun PurchaseCompare(data: Wardrobe, onBack: () -> Unit, navigate: (String) -> Un
                 }
             }
             item { SectionTitle("已拥有 ${matches.size} 件", "ALREADY YOURS") }
-            item { Text("按登记的类别与颜色对照，不识别照片，也不替你决定是否购买。", color = Muted, fontSize = 12.sp) }
+            item { Text(localized("按登记的类别与颜色对照，不识别照片，也不替你决定是否购买。"), color = Muted, fontSize = 12.sp) }
             if (matches.isEmpty()) item { EmptyPanel("没有同类记录", "可能还没录入，也可能这次确实需要一件新的。") }
             items(matches.chunked(2)) { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

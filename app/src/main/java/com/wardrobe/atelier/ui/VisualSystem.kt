@@ -115,8 +115,7 @@ fun Numeral(
     size: TextUnit = 32.sp,
     color: Color = Ink,
 ) {
-    Text(
-        text,
+    Text(localized(text),
         modifier,
         fontFamily = NumeralFont,
         fontWeight = FontWeight.ExtraBold,
@@ -196,8 +195,7 @@ fun ModuleHeading(title: String, code: String, action: String? = null, onAction:
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                title,
+            Text(localized(title),
                 Modifier.weight(1f),
                 fontSize = 26.sp,
                 lineHeight = 32.sp,
@@ -244,8 +242,7 @@ fun AtelierNavigation(selected: Int, onSelect: (Int) -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(3.dp),
                 ) {
                     Glyph(icons[i], Modifier.size(23.dp), tint)
-                    Text(
-                        label,
+                    Text(localized(label),
                         fontSize = 11.sp,
                         lineHeight = 15.sp,
                         color = tint,
@@ -304,15 +301,14 @@ fun EditorialBanner(
                 Spacer(Modifier.width(6.dp))
                 Micro(code, DeepTeal)
             }
-            Text(
-                title,
+            Text(localized(title),
                 fontSize = if (large) 31.sp else 23.sp,
                 lineHeight = if (large) 39.sp else 30.sp,
                 letterSpacing = (-.8).sp,
                 fontWeight = FontWeight.Black,
                 color = Ink,
             )
-            Text(subtitle, fontSize = 11.sp, lineHeight = 17.sp, color = Muted)
+            Text(localized(subtitle), fontSize = 11.sp, lineHeight = 17.sp, color = Muted)
             if (large) {
                 Spacer(Modifier.height(16.dp))
                 Micro("YOUR WARDROBE. YOUR RHYTHM.", Ink)
@@ -347,7 +343,7 @@ fun CollectionMetrics(values: List<Pair<Int, String>>) {
                         size = if (value >= 10000) 22.sp else if (value >= 1000) 26.sp else 32.sp,
                         color = if (i == 1) Teal else Color.White,
                     )
-                    Text(label.replace('\n', ' '), color = Color(0xFFC3CECB), fontSize = 10.sp)
+                    Text(localized(label.replace('\n', ' ')), color = Color(0xFFC3CECB), fontSize = 10.sp)
                 }
             else
                 Row(
@@ -361,7 +357,7 @@ fun CollectionMetrics(values: List<Pair<Int, String>>) {
                         color = if (i == 1) Teal else Color.White,
                     )
                     Spacer(Modifier.width(7.dp))
-                    Text(label, color = Color(0xFFC3CECB), fontSize = 10.sp, lineHeight = 15.sp)
+                    Text(localized(label), color = Color(0xFFC3CECB), fontSize = 10.sp, lineHeight = 15.sp)
                 }
         }
     }
