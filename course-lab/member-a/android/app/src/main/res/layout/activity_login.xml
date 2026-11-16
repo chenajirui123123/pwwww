@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/background" android:clipToPadding="false">
+    <LinearLayout style="@style/Screen">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:layout_marginTop="12dp">
+            <ImageView android:layout_width="48dp" android:layout_height="48dp" android:src="@drawable/ic_wardrobe" android:importantForAccessibility="no"/>
+            <TextView style="@style/Title" android:layout_width="wrap_content" android:layout_marginStart="12dp" android:text="@string/activity_login_text_17" android:textSize="23sp"/>
+        </LinearLayout>
+        <TextView style="@style/Title" android:layout_marginTop="40dp" android:text="@string/activity_login_text_18" android:textSize="34sp" android:lineSpacingExtra="3dp"/>
+        <TextView style="@style/Body" android:layout_marginTop="12dp" android:text="@string/activity_login_text_19"/>
+        <TextView style="@style/Title" android:layout_marginTop="32dp" android:text="@string/activity_login_text_20" android:textSize="22sp"/>
+        <TextView style="@style/Label" android:text="@string/activity_login_text_21" android:labelFor="@id/accountInput"/>
+        <EditText android:id="@+id/accountInput" style="@style/Input" android:hint="@string/activity_login_hint_22" android:inputType="textVisiblePassword" android:autofillHints="username" android:imeOptions="actionNext" android:maxLength="32"/>
+        <TextView style="@style/Label" android:text="@string/activity_login_text_23" android:labelFor="@id/passwordInput"/>
+        <EditText android:id="@+id/passwordInput" style="@style/Input" android:hint="@string/activity_login_hint_24" android:inputType="textPassword" android:autofillHints="password" android:imeOptions="actionDone"/>
+        <TextView android:id="@+id/errorText" style="@style/Error"/>
+        <ProgressBar android:id="@+id/progress" style="@style/Progress"/>
+        <Button android:id="@+id/primaryButton" style="@style/PrimaryButton" android:text="@string/activity_login_text_25"/>
+        <TextView android:id="@+id/secondaryButton" style="@style/TextButton" android:text="@string/activity_login_text_26"/>
+        <TextView android:id="@+id/settingsButton" style="@style/TextButton" android:layout_marginTop="20dp" android:text="@string/activity_login_text_27" android:textColor="@color/muted" android:textSize="13sp"/>
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/background">
+    <LinearLayout style="@style/Screen">
+        <ImageView android:layout_width="56dp" android:layout_height="56dp" android:layout_marginTop="36dp" android:src="@drawable/ic_wardrobe" android:importantForAccessibility="no"/>
+        <TextView android:id="@+id/titleText" style="@style/Title" android:layout_marginTop="28dp" android:text="@string/activity_module_text_28"/>
+        <TextView android:id="@+id/descriptionText" style="@style/Body" android:layout_marginTop="16dp" android:text="@string/activity_module_text_29"/>
+        <Button android:id="@+id/backButton" style="@style/PrimaryButton" android:layout_marginTop="32dp" android:text="@string/activity_module_text_30"/>
+    </LinearLayout>
+</ScrollView>

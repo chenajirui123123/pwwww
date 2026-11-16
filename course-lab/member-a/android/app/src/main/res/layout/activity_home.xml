@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/background">
+    <LinearLayout style="@style/Screen">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+            <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/ic_wardrobe" android:importantForAccessibility="no"/>
+            <TextView style="@style/Title" android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="10dp" android:text="@string/activity_home_text_1" android:textSize="22sp"/>
+            <TextView android:id="@+id/profileButton" style="@style/TextButton" android:layout_width="wrap_content" android:layout_marginTop="0dp" android:text="@string/activity_home_text_2" android:textSize="13sp"/>
+        </LinearLayout>
+        <TextView android:id="@+id/greetingText" style="@style/Title" android:layout_marginTop="32dp" android:text="@string/activity_home_text_3"/>
+        <TextView style="@style/Body" android:layout_marginTop="10dp" android:text="@string/activity_home_text_4"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:background="@drawable/bg_sage" android:orientation="vertical" android:padding="20dp">
+            <TextView style="@style/Label" android:layout_marginTop="0dp" android:layout_marginBottom="6dp" android:text="@string/activity_home_text_5" android:letterSpacing="0.08" android:textSize="11sp"/>
+            <TextView style="@style/Body" android:text="@string/activity_home_text_6" android:textColor="@color/green"/>
+        </LinearLayout>
+        <TextView style="@style/Label" android:layout_marginTop="28dp" android:text="@string/activity_home_text_7" android:textSize="16sp"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginTop="4dp">
+            <LinearLayout android:id="@+id/wardrobeCard" style="@style/DashboardCard" android:layout_marginEnd="6dp">
+                <ImageView android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_wardrobe" android:importantForAccessibility="no"/>
+                <TextView style="@style/CardTitle" android:text="@string/activity_home_text_8"/>
+                <TextView style="@style/CardBody" android:text="@string/activity_home_text_9"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/outfitsCard" style="@style/DashboardCard" android:layout_marginStart="6dp">
+                <ImageView android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_outfit" android:importantForAccessibility="no"/>
+                <TextView style="@style/CardTitle" android:text="@string/activity_home_text_10"/>
+                <TextView style="@style/CardBody" android:text="@string/activity_home_text_11"/>
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginTop="12dp">
+            <LinearLayout android:id="@+id/careCard" style="@style/DashboardCard" android:layout_marginEnd="6dp">
+                <ImageView android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_care" android:importantForAccessibility="no"/>
+                <TextView style="@style/CardTitle" android:text="@string/activity_home_text_12"/>
+                <TextView style="@style/CardBody" android:text="@string/activity_home_text_13"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/statisticsCard" style="@style/DashboardCard" android:layout_marginStart="6dp">
+                <ImageView android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_statistics" android:importantForAccessibility="no"/>
+                <TextView style="@style/CardTitle" android:text="@string/activity_home_text_14"/>
+                <TextView style="@style/CardBody" android:text="@string/activity_home_text_15"/>
+            </LinearLayout>
+        </LinearLayout>
+        <TextView android:id="@+id/errorText" style="@style/Error"/>
+        <ProgressBar android:id="@+id/progress" style="@style/Progress"/>
+        <TextView android:id="@+id/logoutButton" style="@style/TextButton" android:layout_marginTop="24dp" android:text="@string/activity_home_text_16" android:textColor="@color/muted"/>
+    </LinearLayout>
+</ScrollView>
