@@ -1,6 +1,5 @@
 package com.wardrobe.atelier.ui
 
-import com.wardrobe.atelier.presentation.EnglishTemplates
 import org.junit.Assert.*
 import org.junit.Test
 

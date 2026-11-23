@@ -1,7 +1,5 @@
 package com.wardrobe.atelier.ui
 
-import com.wardrobe.atelier.presentation.*
-
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -17,7 +15,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
+import com.wardrobe.atelier.AppState
 import com.wardrobe.atelier.R
+import com.wardrobe.atelier.WardrobeViewModel
 import com.wardrobe.atelier.domain.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -181,7 +181,7 @@ fun CapsuleBuilder(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) {
                             try {
                                 val result =
                                     withContext(Dispatchers.Default) {
-                                        vm.generateCapsule(
+                                        CapsuleEngine.generate(
                                             state.data.garments,
                                             count,
                                             limit,
@@ -266,7 +266,11 @@ fun CapsuleBuilder(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) {
                 ActionButton(
                     "保存这份行李胶囊",
                     {
-                        vm.saveCapsule(Capsule(name = title, season = season, looks = looks, notes = notes), success = "行李胶囊已保存", after = onBack)
+                        vm.perform("行李胶囊已保存", onBack) {
+                            saveCapsule(
+                                Capsule(name = title, season = season, looks = looks, notes = notes)
+                            )
+                        }
                     },
                     Modifier.fillMaxWidth(),
                     enabled = !busy && title.isNotBlank(),
@@ -327,7 +331,7 @@ fun CapsuleDetail(
                                 Checkbox(
                                     g.id in c.packed,
                                     { selected ->
-                                        vm.setCapsulePacked(c.id, g.id, selected, success = null, after = {})
+                                        vm.perform(null) { setCapsulePacked(c.id, g.id, selected) }
                                     },
                                     enabled = !state.busy,
                                 )
@@ -356,7 +360,7 @@ fun CapsuleDetail(
                     }
                 item {
                     TextButton(
-                        onClick = { vm.resetCapsulePacked(c.id, success = "已重新打开清单", after = {}) },
+                        onClick = { vm.perform("已重新打开清单") { resetCapsulePacked(c.id) } },
                         enabled = !state.busy,
                     ) {
                         Text(localized("清空勾选，再用一次"))
@@ -399,11 +403,13 @@ fun CapsuleDetail(
     }
     if (deleting)
         ConfirmDialog("删除这份行李胶囊？", "只删除这份组合与行李勾选，衣物仍留在衣橱里。", { deleting = false }) {
-            vm.deleteCapsule(c.id, success = "已删除行李胶囊", after = onBack)
+            vm.perform("已删除行李胶囊", onBack) { deleteCapsule(c.id) }
         }
     if (editing)
         CapsuleInfoDialog(c, { editing = false }) { name, notes ->
-            vm.saveCapsule(c.copy(name = name, notes = notes), success = "已更新", after = { editing = false })
+            vm.perform("已更新", { editing = false }) {
+                saveCapsule(c.copy(name = name, notes = notes))
+            }
         }
 }
 

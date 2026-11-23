@@ -1,5 +1,6 @@
 package com.wardrobe.atelier
 
+import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -8,25 +9,22 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.content.IntentCompat
-import com.wardrobe.atelier.presentation.WardrobeViewModel
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.wardrobe.atelier.data.LocalStore
+import com.wardrobe.atelier.domain.*
 import com.wardrobe.atelier.ui.WardrobeApp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
-    private val wardrobeModel: WardrobeViewModel by viewModels {
-        object : androidx.lifecycle.ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                require(modelClass.isAssignableFrom(WardrobeViewModel::class.java))
-                @Suppress("UNCHECKED_CAST")
-                return WardrobeViewModel(com.wardrobe.atelier.data.LocalWardrobeRepository(applicationContext)) as T
-            }
-        }
-    }
+    private val wardrobeModel: WardrobeViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        com.wardrobe.atelier.presentation.LanguagePreferences.initialize(
-            com.wardrobe.atelier.data.LocalLanguageSettings(applicationContext)
-        )
         enableEdgeToEdge()
         if (savedInstanceState == null) receiveShare(intent)
         setContent { WardrobeApp(wardrobeModel) }
@@ -46,5 +44,74 @@ class MainActivity : ComponentActivity() {
         ) {
             wardrobeModel.error("请分享一张 JPEG、PNG 或 WebP 图片")
         } else wardrobeModel.queueSharedImage(uri)
+    }
+}
+
+data class AppState(
+    val loaded: Boolean = false,
+    val account: Account? = null,
+    val data: Wardrobe = Wardrobe(),
+    val busy: Boolean = false,
+    val error: String? = null,
+    val message: String? = null,
+)
+
+class WardrobeViewModel(application: Application) : AndroidViewModel(application) {
+    val store = LocalStore(application)
+    private val mutable = MutableStateFlow(AppState())
+    val state = mutable.asStateFlow()
+    private val incomingImage = MutableStateFlow<Uri?>(null)
+    val sharedImage = incomingImage.asStateFlow()
+
+    fun queueSharedImage(uri: Uri) {
+        incomingImage.value = uri
+    }
+
+    fun consumeSharedImage(uri: Uri) {
+        if (incomingImage.value == uri) incomingImage.value = null
+    }
+
+    init {
+        perform(null) {}
+    }
+
+    fun perform(success: String? = "已保存", after: () -> Unit = {}, action: LocalStore.() -> Unit) {
+        if (mutable.value.busy) return
+        mutable.value = mutable.value.copy(busy = true, error = null)
+        viewModelScope.launch {
+            try {
+                val (account, data) =
+                    withContext(Dispatchers.IO) {
+                        store.action()
+                        val a = store.account()
+                        a to if (a != null) store.snapshot() else Wardrobe()
+                    }
+                mutable.value = AppState(true, account, data, false, null, success)
+                after()
+            } catch (e: Exception) {
+                mutable.value =
+                    mutable.value.copy(loaded = true, busy = false, error = e.message ?: "操作失败，请重试")
+            }
+        }
+    }
+
+    fun error(text: String) {
+        mutable.value = mutable.value.copy(error = text)
+    }
+
+    fun notify(text: String) {
+        mutable.value = mutable.value.copy(message = text)
+    }
+
+    fun clearError() {
+        mutable.value = mutable.value.copy(error = null)
+    }
+
+    fun clearMessage() {
+        mutable.value = mutable.value.copy(message = null)
+    }
+
+    override fun onCleared() {
+        store.close()
     }
 }

@@ -1,7 +1,5 @@
 package com.wardrobe.atelier.ui
 
-import com.wardrobe.atelier.presentation.*
-
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.*
@@ -27,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.wardrobe.atelier.*
 import com.wardrobe.atelier.R
 import com.wardrobe.atelier.domain.*
@@ -34,7 +33,8 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 @Composable
-fun WardrobeApp(vm: WardrobeViewModel) {
+fun WardrobeApp(vm: WardrobeViewModel = viewModel()) {
+    LanguagePreferences.initialize(androidx.compose.ui.platform.LocalContext.current)
     val state by vm.state.collectAsStateWithLifecycle()
     val sharedImage by vm.sharedImage.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -208,9 +208,16 @@ fun WardrobeApp(vm: WardrobeViewModel) {
                         confirmButton = {
                             TextButton(
                                 onClick = {
-
-                                    vm.importImage(uri, success = null, after = { imported -> vm.consumeSharedImage(uri)
-                                            navigate("shared/${android.net.Uri.encode(imported)}") })
+                                    var path = ""
+                                    vm.perform(
+                                        null,
+                                        {
+                                            vm.consumeSharedImage(uri)
+                                            navigate("shared/${android.net.Uri.encode(path)}")
+                                        },
+                                    ) {
+                                        path = importImage(uri)
+                                    }
                                 },
                                 enabled = !state.busy,
                             ) {
@@ -317,7 +324,10 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
         ActionButton(
             if (busy) "正在打开衣橱…" else if (register) "注册并进入" else "登录",
             {
-                vm.authenticate(register, username, password, nickname)
+                vm.perform("欢迎来到衣序") {
+                    if (register) register(username, password, nickname)
+                    else login(username, password)
+                }
             },
             Modifier.fillMaxWidth(),
             enabled = !busy,
@@ -327,7 +337,7 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
             TextButton(onClick = { register = !register }, enabled = !busy) {
                 Text(localized(if (register) "已有账号？去登录" else "还没有账号？创建一个"))
             }
-            TextButton(onClick = { vm.demo(success = "已打开示例衣橱", after = {}) }, enabled = !busy) {
+            TextButton(onClick = { vm.perform("已打开示例衣橱") { demo() } }, enabled = !busy) {
                 Text(localized("体验示例衣橱"), color = Pink)
             }
         }
@@ -698,7 +708,7 @@ fun CalendarScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewM
         ConfirmDialog("删除这条计划？", "删除后，已经生成的实际穿着记录仍会保留。", { deleteId = null }) {
             val id = deleteId!!
             deleteId = null
-            vm.deletePlan(id, success = "计划已删除", after = {})
+            vm.perform("计划已删除") { deletePlan(id) }
         }
 }
 
@@ -792,12 +802,16 @@ fun CareScreen(data: Wardrobe, navigate: (String) -> Unit, vm: WardrobeViewModel
                     Spacer(Modifier.height(4.dp))
                     TextButton(
                         onClick = {
-                            vm.setCare(g.id,
+                            vm.perform("洗护状态已更新") {
+                                setCare(
+                                    g.id,
                                     when (state) {
                                         Care.DIRTY -> Care.WASHING
                                         Care.WASHING -> Care.READY
                                         Care.READY -> Care.DIRTY
-                                    }, success = "洗护状态已更新", after = {})
+                                    },
+                                )
+                            }
                         },
                         contentPadding = PaddingValues(0.dp),
                     ) {

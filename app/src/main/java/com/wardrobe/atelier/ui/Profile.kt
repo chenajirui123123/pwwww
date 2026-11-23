@@ -1,7 +1,5 @@
 package com.wardrobe.atelier.ui
 
-import com.wardrobe.atelier.presentation.*
-
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -124,7 +122,7 @@ fun ProfileScreen(
             confirmButton = {
                 TextButton(
                     enabled = !state.busy,
-                    onClick = { vm.rename(nick, success = "昵称已更新", after = { rename = false }) },
+                    onClick = { vm.perform("昵称已更新", { rename = false }) { rename(nick) } },
                 ) {
                     Text(localized("保存"))
                 }
@@ -172,11 +170,16 @@ fun ProfileScreen(
                 TextButton(
                     enabled = !state.busy,
                     onClick = {
-                        vm.changePassword(oldPass, newPass, success = "密码已修改", after = {
+                        vm.perform(
+                            "密码已修改",
+                            {
                                 passwordDialog = false
                                 oldPass = ""
                                 newPass = ""
-                            })
+                            },
+                        ) {
+                            changePassword(oldPass, newPass)
+                        }
                     },
                 ) {
                     Text(localized("保存"))
@@ -186,7 +189,7 @@ fun ProfileScreen(
     if (logout)
         ConfirmDialog("退出当前账号？", "本机衣物与历史记录仍然保留，再次进入同一空间即可查看。", { logout = false }) {
             logout = false
-            vm.logout(success = "已退出登录", after = {})
+            vm.perform("已退出登录") { logout() }
         }
 }
 
@@ -242,7 +245,7 @@ fun LocationScreen(data: Wardrobe, vm: WardrobeViewModel, onBack: () -> Unit) {
                     )
                     ActionButton(
                         "添加",
-                        { vm.addLocation(value, success = "位置已添加", after = { value = "" }) },
+                        { vm.perform("位置已添加", { value = "" }) { addLocation(value) } },
                     )
                 }
             }
@@ -284,7 +287,7 @@ fun LocationScreen(data: Wardrobe, vm: WardrobeViewModel, onBack: () -> Unit) {
                 TextButton(
                     onClick = {
                         val old = editing!!
-                        vm.renameLocation(old, editValue, success = "位置已更新", after = { editing = null })
+                        vm.perform("位置已更新", { editing = null }) { renameLocation(old, editValue) }
                     }
                 ) {
                     Text(localized("保存"))
@@ -295,7 +298,7 @@ fun LocationScreen(data: Wardrobe, vm: WardrobeViewModel, onBack: () -> Unit) {
         ConfirmDialog("删除这个位置？", "仍有关联衣物的位置不能删除，请先移动相关衣物。", { removing = null }) {
             val name = removing!!
             removing = null
-            vm.deleteLocation(name, success = "位置已删除", after = {})
+            vm.perform("位置已删除") { deleteLocation(name) }
         }
 }
 
