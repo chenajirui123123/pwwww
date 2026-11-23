@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#F7F8F4</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="green">#234E41</color>
+    <color name="sage">#E5EEE6</color>
+    <color name="ink">#20352D</color>
+    <color name="muted">#69776F</color>
+    <color name="border">#DDE4DC</color>
+    <color name="error">#A33732</color>
+</resources>
