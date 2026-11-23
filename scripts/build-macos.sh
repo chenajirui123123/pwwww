@@ -2,6 +2,7 @@
 set -euo pipefail
 project_dir="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$project_dir"
+python3 scripts/check-architecture.py
 if [[ -d '/Applications/Android Studio.app/Contents/jbr/Contents/Home' ]]; then
   export JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home'
 elif [[ -z "${JAVA_HOME:-}" ]]; then

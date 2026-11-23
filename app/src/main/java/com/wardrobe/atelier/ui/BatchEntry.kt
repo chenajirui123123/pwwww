@@ -1,5 +1,7 @@
 package com.wardrobe.atelier.ui
 
+import com.wardrobe.atelier.presentation.*
+
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,8 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
-import com.wardrobe.atelier.AppState
-import com.wardrobe.atelier.WardrobeViewModel
 import com.wardrobe.atelier.domain.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -68,13 +68,8 @@ fun BatchPhotoEntry(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) 
             if (uris.isNotEmpty()) {
                 if (drafts.size + uris.distinct().size > 20) vm.error("这批最多 20 张图片，可以先保存这一批。")
                 else {
-                    var paths: List<String> = emptyList()
-                    vm.perform(
-                        null,
-                        { update(drafts + paths.map { PhotoDraft(it, category = category) }) },
-                    ) {
-                        paths = importImages(uris)
-                    }
+
+                    vm.importImages(uris, success = null, after = { imported -> update(drafts + imported.map { PhotoDraft(it, category = category) }) })
                 }
             }
         }
@@ -150,12 +145,7 @@ fun BatchPhotoEntry(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) 
                             Text(localized(d.category), fontWeight = FontWeight.Black, fontSize = 20.sp)
                             TextButton(
                                 onClick = {
-                                    vm.perform(
-                                        null,
-                                        { update(drafts.filterNot { it.path == d.path }) },
-                                    ) {
-                                        discardDraftImages(listOf(d.path))
-                                    }
+                                    vm.discardDraftImages(listOf(d.path), success = null, after = { update(drafts.filterNot { it.path == d.path }) })
                                 },
                                 enabled = !state.busy,
                             ) {
@@ -193,9 +183,7 @@ fun BatchPhotoEntry(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) 
                 ActionButton(
                     "保存这 ${drafts.size} 件衣物",
                     {
-                        vm.perform("已记下 ${drafts.size} 件衣物", onBack) {
-                            saveQuickGarments(
-                                drafts.mapIndexed { index, d ->
+                        vm.saveQuickGarments(drafts.mapIndexed { index, d ->
                                     Garment(
                                         name = d.name.ifBlank { "${d.category} ${index + 1}" },
                                         category = d.category,
@@ -204,9 +192,7 @@ fun BatchPhotoEntry(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) 
                                         color = "其他",
                                         season = "未标注",
                                     )
-                                }
-                            )
-                        }
+                                }, success = "已记下 ${drafts.size} 件衣物", after = onBack)
                     },
                     Modifier.fillMaxWidth(),
                     enabled = !state.busy && location.isNotBlank(),
@@ -216,6 +202,6 @@ fun BatchPhotoEntry(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) 
     }
     if (discard)
         ConfirmDialog("离开这批录入？", "这批照片和资料还没有保存为衣物。原相册照片不会受影响。", { discard = false }) {
-            vm.perform(null, onBack) { discardDraftImages(drafts.map { it.path }) }
+            vm.discardDraftImages(drafts.map { it.path }, success = null, after = onBack)
         }
 }

@@ -1,5 +1,7 @@
 package com.wardrobe.atelier
 
+import com.wardrobe.atelier.presentation.WardrobeViewModel
+
 import android.app.Activity
 import android.app.Instrumentation
 import android.content.*

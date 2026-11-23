@@ -1,5 +1,7 @@
 package com.wardrobe.atelier.ui
 
+import com.wardrobe.atelier.presentation.*
+
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,8 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
-import com.wardrobe.atelier.AppState
-import com.wardrobe.atelier.WardrobeViewModel
 import com.wardrobe.atelier.domain.*
 
 private fun idSet(text: String): Set<Long> =
@@ -54,19 +54,15 @@ fun InspirationScreen(
         skips: Set<Long> = excluded,
         replace: Long? = null,
     ) {
-        val effectivePins = if (replace != null) pieces.map { it.id }.toSet() - replace else pins
-        val effectiveSkips = if (replace != null) skips + replace else skips
-        val effectiveRequest =
-            if (replace != null)
-                req.copy(structure = if (pieces.any { it.category == "连衣裙" }) "连衣裙" else "上下装")
-            else req
         runCatching {
-                InspirationEngine.generate(
+                vm.generateOutfit(
                     data.garments,
-                    effectiveRequest,
-                    effectivePins,
-                    effectiveSkips,
+                    req,
+                    pins,
+                    skips,
                     seenText.split(';').filter { it.isNotBlank() }.toSet(),
+                    pieces,
+                    replace,
                 )
             }
             .onSuccess { result ->
@@ -309,17 +305,13 @@ fun InspirationScreen(
                 ActionButton(
                     if (saved) "已收藏" else "收藏这套",
                     {
-                        vm.perform("搭配已收藏") {
-                            saveOutfit(
-                                Outfit(
+                        vm.saveOutfit(Outfit(
                                     name =
                                         "${if (mood == "随心") "日常" else mood}灵感 ${data.outfits.size + 1}",
                                     occasion = if (mood == "随心") "日常" else mood,
                                     notes = "衣橱灵感组合",
                                     items = pieces.map { it.id },
-                                )
-                            )
-                        }
+                                ), success = "搭配已收藏", after = {})
                     },
                     Modifier.weight(1f),
                     secondary = true,
@@ -425,7 +417,7 @@ fun LightOutfitDetail(
     }
     if (deleting)
         ConfirmDialog("删除这套收藏？", "衣物与已有历史记录不会删除。", { deleting = false }) {
-            vm.perform("已删除收藏", onBack) { deleteOutfit(o.id) }
+            vm.deleteOutfit(o.id, success = "已删除收藏", after = onBack)
         }
 }
 

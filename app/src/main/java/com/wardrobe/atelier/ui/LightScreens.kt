@@ -1,5 +1,7 @@
 package com.wardrobe.atelier.ui
 
+import com.wardrobe.atelier.presentation.*
+
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,16 +25,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import com.wardrobe.atelier.AppState
 import com.wardrobe.atelier.R
-import com.wardrobe.atelier.WardrobeViewModel
 import com.wardrobe.atelier.domain.*
 
 private fun parseIds(value: String) = value.split(',').mapNotNull { it.toLongOrNull() }.toSet()
 
 @Composable
 fun LightWelcome(vm: WardrobeViewModel, busy: Boolean, incomingImage: Boolean = false) {
-    LanguagePreferences.initialize(androidx.compose.ui.platform.LocalContext.current)
     var accounts by rememberSaveable { mutableStateOf(false) }
     if (accounts) {
         BackHandler { accounts = false }
@@ -80,14 +79,14 @@ fun LightWelcome(vm: WardrobeViewModel, busy: Boolean, incomingImage: Boolean = 
         Text(localized("知道衣服放哪儿，试试没想到的组合。\n不用每天登记穿着，也不用记录洗衣服。"), color = Muted, lineHeight = 24.sp)
         ActionButton(
             "直接开始我的衣橱",
-            { vm.perform(null) { openLocalWardrobe() } },
+            { vm.openLocalWardrobe(success = null, after = {}) },
             Modifier.fillMaxWidth(),
             enabled = !busy,
             icon = "arrow",
         )
         ActionButton(
             "先逛逛示例衣橱",
-            { vm.perform(null) { demo() } },
+            { vm.demo(success = null, after = {}) },
             Modifier.fillMaxWidth(),
             secondary = true,
             enabled = !busy,
@@ -303,16 +302,11 @@ fun FindWardrobeScreen(data: Wardrobe, vm: WardrobeViewModel, navigate: (String)
     }
     if (moving)
         MoveDialog(data.locations, { moving = false }) { place ->
-            vm.perform(
-                "位置已更新",
-                {
+            vm.moveGarments(selected.toList(), place, success = "位置已更新", after = {
                     moving = false
                     selecting = false
                     selectedText = ""
-                },
-            ) {
-                moveGarments(selected.toList(), place)
-            }
+                })
         }
 }
 
@@ -431,8 +425,8 @@ fun QuickGarmentEditor(
     val picker =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null) {
-                var path = ""
-                vm.perform(null, { image = path }) { path = importImage(uri) }
+
+                vm.importImage(uri, success = null, after = { imported -> image = imported })
             }
         }
     Column(Modifier.fillMaxSize().imePadding()) {
@@ -575,7 +569,7 @@ fun QuickGarmentEditor(
                             (price.toDoubleOrNull() == null || !price.toDouble().isFinite())
                     )
                         vm.error("请输入有效的价格")
-                    else vm.perform("衣物已记下", onBack) { saveQuickGarment(current) }
+                    else vm.saveQuickGarment(current, success = "衣物已记下", after = onBack)
                 },
                 Modifier.fillMaxWidth(),
                 enabled = !state.busy,
@@ -655,7 +649,7 @@ fun LightGarmentDetail(
     }
     if (move)
         MoveDialog(data.locations, { move = false }) {
-            vm.perform("位置已更新", { move = false }) { moveGarments(listOf(g.id), it) }
+            vm.moveGarments(listOf(g.id), it, success = "位置已更新", after = { move = false })
         }
     if (archive)
         ConfirmDialog(
@@ -663,7 +657,7 @@ fun LightGarmentDetail(
             "归档后不再参与新搭配，原有记录仍保留。",
             { archive = false },
         ) {
-            vm.perform("已更新", onBack) { archive(g.id, !g.archived) }
+            vm.archive(g.id, !g.archived, success = "已更新", after = onBack)
         }
 }
 

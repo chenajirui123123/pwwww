@@ -2,6 +2,7 @@
 set -euo pipefail
 project_dir="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$project_dir"
+python3 scripts/check-architecture.py
 export JAVA_HOME="${JAVA_HOME:-/Applications/Android Studio.app/Contents/jbr/Contents/Home}"
 sdk_path="${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}"
 adb_bin="$sdk_path/platform-tools/adb"
