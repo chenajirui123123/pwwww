@@ -1,5 +1,7 @@
 package com.wardrobe.atelier.ui
 
+import com.wardrobe.atelier.presentation.*
+
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -21,7 +23,7 @@ fun BackupPanel(vm: WardrobeViewModel, state: AppState) {
             val secret = pass
             pass = ""
             mode = ""
-            if (uri != null) vm.perform("加密备份已导出") { exportBackup(uri, secret) }
+            if (uri != null) vm.exportBackup(uri, secret, success = "加密备份已导出", after = {})
             else vm.notify("已取消导出")
         }
     val restore =
@@ -29,7 +31,7 @@ fun BackupPanel(vm: WardrobeViewModel, state: AppState) {
             val secret = pass
             pass = ""
             mode = ""
-            if (uri != null) vm.perform("备份已恢复") { importBackup(uri, secret) }
+            if (uri != null) vm.importBackup(uri, secret, success = "备份已恢复", after = {})
             else vm.notify("已取消恢复")
         }
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {

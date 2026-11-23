@@ -1,0 +1,10 @@
+{
+  "version": "2.0.0-alpha3",
+  "application_id": "com.wardrobe.atelier.light",
+  "unit_tests": 24,
+  "unit_failures": 0,
+  "android_tests": 25,
+  "apk_sha256": "e67b109965fef70c07ca29009e6276829e7b2eafda312caa9eed94b26f80ec3c",
+  "unchanged_storage_source": true,
+  "physical_device_verified": false
+}

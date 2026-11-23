@@ -1,5 +1,7 @@
 package com.wardrobe.atelier.ui
 
+import com.wardrobe.atelier.presentation.*
+
 import android.app.DatePickerDialog
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -305,8 +307,8 @@ private fun GarmentEditor(
     val picker =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             if (uri != null) {
-                var path = ""
-                vm.perform(null, after = { image = path }) { path = importImage(uri) }
+
+                vm.importImage(uri, success = null, after = { imported -> image = imported })
             } else vm.notify("已取消选择，原图片保持不变")
         }
     EditorFrame(
@@ -316,7 +318,7 @@ private fun GarmentEditor(
         onBack,
         {
             if (price.isNotBlank() && price.toDoubleOrNull() == null) vm.error("请输入有效的价格")
-            else vm.perform("衣物已保存", onBack) { saveGarment(current) }
+            else vm.saveGarment(current, success = "衣物已保存", after = onBack)
         },
     ) {
         Box(
@@ -470,7 +472,7 @@ private fun OutfitEditor(
         current != original,
         state.busy,
         onBack,
-        { vm.perform("搭配已保存", onBack) { saveOutfit(current) } },
+        { vm.saveOutfit(current, success = "搭配已保存", after = onBack) },
     ) {
         OutfitMontage(
             state.data.pieces(current.items),
@@ -508,7 +510,7 @@ private fun PlanEditor(original: Plan, state: AppState, vm: WardrobeViewModel, o
         current != original,
         state.busy,
         onBack,
-        { vm.perform("计划已保存", onBack) { savePlan(current) } },
+        { vm.savePlan(current, success = "计划已保存", after = onBack) },
     ) {
         DateField("计划日期", date, { date = it })
         Label("选择搭配")
@@ -575,7 +577,7 @@ private fun WearEditor(original: Wear, state: AppState, vm: WardrobeViewModel, o
         current != original,
         state.busy,
         onBack,
-        { vm.perform("实际穿着已保存", onBack) { saveWear(current) } },
+        { vm.saveWear(current, success = "实际穿着已保存", after = onBack) },
         "保存实际穿着",
     ) {
         DateField("实际穿着日期", date, { date = it }, true)
@@ -595,7 +597,7 @@ private fun WearEditor(original: Wear, state: AppState, vm: WardrobeViewModel, o
     if (ask)
         ConfirmDialog("撤销这条记录？", "记录会保留并标为已撤销，统计将重新计算；洗护状态保持不变。", { ask = false }) {
             ask = false
-            vm.perform("记录已撤销", onBack) { voidWear(original.id) }
+            vm.voidWear(original.id, success = "记录已撤销", after = onBack)
         }
 }
 
@@ -669,7 +671,7 @@ private fun GarmentDetail(
                             Tag(
                                 c.label,
                                 g.care == c,
-                                { vm.perform("洗护状态已更新") { setCare(g.id, c) } },
+                                { vm.setCare(g.id, c, success = "洗护状态已更新", after = {}) },
                             )
                         }
                     }
@@ -719,7 +721,7 @@ private fun GarmentDetail(
             { ask = false },
         ) {
             ask = false
-            vm.perform(if (g.archived) "衣物已恢复" else "衣物已归档") { archive(g.id, !g.archived) }
+            vm.archive(g.id, !g.archived, success = if (g.archived) "衣物已恢复" else "衣物已归档", after = {})
         }
 }
 
@@ -799,7 +801,7 @@ private fun OutfitDetail(
     if (ask)
         ConfirmDialog("删除这套搭配？", "已经保存的计划和实际穿着记录会保留。", { ask = false }) {
             ask = false
-            vm.perform("搭配已删除", onBack) { deleteOutfit(o.id) }
+            vm.deleteOutfit(o.id, success = "搭配已删除", after = onBack)
         }
 }
 

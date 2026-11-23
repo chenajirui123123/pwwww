@@ -3,7 +3,7 @@ package com.wardrobe.atelier
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.wardrobe.atelier.ui.LanguagePreferences
+import com.wardrobe.atelier.presentation.LanguagePreferences
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
