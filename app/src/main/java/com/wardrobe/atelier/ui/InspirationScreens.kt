@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -31,63 +32,14 @@ fun InspirationScreen(
 ) {
     val data = state.data
     val boardHeight = if (LocalConfiguration.current.screenHeightDp < 760) 210.dp else 250.dp
-    var season by rememberSaveable { mutableStateOf("不限") }
-    var structure by rememberSaveable { mutableStateOf("自动") }
-    var mood by rememberSaveable { mutableStateOf("随心") }
-    var outer by rememberSaveable { mutableStateOf(false) }
-    var bag by rememberSaveable { mutableStateOf(false) }
     var filters by rememberSaveable { mutableStateOf(false) }
-    var lockedText by rememberSaveable(seed) { mutableStateOf(if (seed > 0) "$seed" else "") }
-    var excludedText by rememberSaveable { mutableStateOf("") }
-    var pickedText by rememberSaveable { mutableStateOf("") }
-    var seenText by rememberSaveable { mutableStateOf("") }
-    var explanation by rememberSaveable { mutableStateOf("") }
-    var problem by rememberSaveable { mutableStateOf("") }
-    var inventoryRevision by rememberSaveable { mutableStateOf<Int?>(null) }
-    val locked = idSet(lockedText)
-    val excluded = idSet(excludedText)
-    val pieces = data.pieces(idSet(pickedText).toList())
-    val request = InspirationRequest(season, structure, mood, outer, bag)
-    fun generate(
-        req: InspirationRequest = request,
-        pins: Set<Long> = locked,
-        skips: Set<Long> = excluded,
-        replace: Long? = null,
-    ) {
-        runCatching {
-                vm.generateOutfit(
-                    data.garments,
-                    req,
-                    pins,
-                    skips,
-                    seenText.split(';').filter { it.isNotBlank() }.toSet(),
-                    pieces,
-                    replace,
-                )
-            }
-            .onSuccess { result ->
-                pickedText = result.items.joinToString(",") { it.id.toString() }
-                seenText =
-                    (seenText.split(';').filter { it.isNotBlank() } + result.signature)
-                        .takeLast(24)
-                        .joinToString(";")
-                explanation = result.notes.joinToString(" · ")
-                problem = if (result.repeated) "当前条件下的组合已经看过了，可以换个条件，或解锁一件再试。" else ""
-            }
-            .onFailure { e ->
-                problem = if (replace != null) "这一件暂时没有合适的替换。其他单品保留原样。" else e.message ?: "暂时无法组合"
-                if (replace == null) pickedText = ""
-            }
-    }
-    // A saved suggestion survives tab switches, but never outlives changed inventory constraints.
-    val revision =
-        data.garments
-            .map { listOf(it.id, it.category, it.color, it.season, it.style, it.archived) }
-            .hashCode()
-    LaunchedEffect(revision, seed) {
-        if (inventoryRevision != revision || pickedText.isBlank()) generate()
-        inventoryRevision = revision
-    }
+    val presenter = rememberInspirationPresenter(seed)
+    val suggestion by presenter.state.collectAsStateWithLifecycle()
+    LaunchedEffect(presenter, data.garments) { presenter.updateInventory(data.garments) }
+    val (season, structure, mood, outer, bag) = suggestion.request
+    val locked = suggestion.locked
+    val excluded = suggestion.excluded
+    val pieces = data.pieces(suggestion.picked)
     val saved =
         data.outfits.any {
             it.items.toSet() == pieces.map { g -> g.id }.toSet() && pieces.isNotEmpty()
@@ -123,36 +75,31 @@ fun InspirationScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         Text(localized("季节"), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        ChipRow(listOf("不限", "春秋", "夏季", "冬季"), season) {
-                            season = it
-                            generate(request.copy(season = it))
+                        ChipRow(listOf("不限", "春秋", "夏季", "冬季"), season) { value ->
+                            presenter.changeRequest { it.copy(season = value) }
                         }
                         Text(localized("组合方式"), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        ChipRow(listOf("自动", "上下装", "连衣裙"), structure) {
-                            structure = it
-                            generate(request.copy(structure = it))
+                        ChipRow(listOf("自动", "上下装", "连衣裙"), structure) { value ->
+                            presenter.changeRequest { it.copy(structure = value) }
                         }
                         Text(localized("款式倾向"), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        ChipRow(listOf("随心", "通勤", "休闲", "运动"), mood) {
-                            mood = it
-                            generate(request.copy(mood = it))
+                        ChipRow(listOf("随心", "通勤", "休闲", "运动"), mood) { value ->
+                            presenter.changeRequest { it.copy(mood = value) }
                         }
                         Row {
                             CheckOption(
                                 "搭上外套",
                                 outer,
-                                {
-                                    outer = it
-                                    generate(request.copy(outerwear = it))
+                                { value ->
+                                    presenter.changeRequest { it.copy(outerwear = value) }
                                 },
                                 Modifier.weight(1f),
                             )
                             CheckOption(
                                 "配个包",
                                 bag,
-                                {
-                                    bag = it
-                                    generate(request.copy(bag = it))
+                                { value ->
+                                    presenter.changeRequest { it.copy(bag = value) }
                                 },
                                 Modifier.weight(1f),
                             )
@@ -160,9 +107,10 @@ fun InspirationScreen(
                     }
                 }
             }
-            if (problem.isNotBlank())
+            if (suggestion.pending) item { LinearProgressIndicator(Modifier.fillMaxWidth(), color = Teal) }
+            if (suggestion.problem.isNotBlank())
                 item {
-                    Text(localized(problem),
+                    Text(localized(suggestion.problem),
                         Modifier.fillMaxWidth()
                             .background(Lime.copy(alpha = .35f), SmallPanel)
                             .padding(13.dp),
@@ -170,20 +118,29 @@ fun InspirationScreen(
                         lineHeight = 20.sp,
                     )
                 }
-            if (pieces.isEmpty())
+            if (locked.isNotEmpty() || excluded.isNotEmpty())
                 item {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(localized("锁定 ${locked.size} 件 · 本轮跳过 ${excluded.size} 件"),
+                            Modifier.weight(1f),
+                            fontSize = 12.sp,
+                            color = DeepTeal,
+                        )
+                        TextButton(onClick = presenter::resetConstraints) {
+                            Text(localized("重置"))
+                        }
+                    }
+                }
+            if (pieces.isEmpty()) {
+                if (!suggestion.pending) item {
                     EmptyPanel("先留一点衣物线索", "有上衣和下装，或一件连衣裙，就能开始组合。", "录入衣物") {
                         navigate("garment/0")
                     }
                 }
-            else {
+            } else {
                 item {
                     Column(Modifier.fillMaxWidth().clip(Panel).background(Color.White)) {
-                        OutfitBoard(pieces, Modifier.fillMaxWidth().height(boardHeight), locked) {
-                            id ->
-                            lockedText =
-                                (if (id in locked) locked - id else locked + id).joinToString(",")
-                        }
+                        OutfitBoard(pieces, Modifier.fillMaxWidth().height(boardHeight), locked, presenter::toggleLock)
                         Row(
                             Modifier.padding(14.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -200,27 +157,8 @@ fun InspirationScreen(
                         }
                     }
                 }
-                if (locked.isNotEmpty() || excluded.isNotEmpty())
-                    item {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(localized("锁定 ${locked.size} 件 · 本轮跳过 ${excluded.size} 件"),
-                                Modifier.weight(1f),
-                                fontSize = 12.sp,
-                                color = DeepTeal,
-                            )
-                            TextButton(
-                                onClick = {
-                                    lockedText = ""
-                                    excludedText = ""
-                                    generate(pins = emptySet(), skips = emptySet())
-                                }
-                            ) {
-                                Text(localized("重置"))
-                            }
-                        }
-                    }
                 item {
-                    Text(localized("点衣物可锁定 · " + explanation),
+                    Text(localized("点衣物可锁定 · " + suggestion.explanation),
                         color = Muted,
                         fontSize = 12.sp,
                         lineHeight = 19.sp,
@@ -249,30 +187,22 @@ fun InspirationScreen(
                                 Text(g.location, fontSize = 12.sp, color = DeepTeal)
                             }
                             TextButton(
-                                onClick = {
-                                    lockedText =
-                                        (if (g.id in locked) locked - g.id else locked + g.id)
-                                            .joinToString(",")
-                                }
+                                onClick = { presenter.toggleLock(g.id) },
+                                enabled = !suggestion.pending,
                             ) {
                                 Text(localized(if (g.id in locked) "已锁定" else "锁住这件"))
                             }
                         }
                         Row {
                             TextButton(
-                                onClick = { generate(replace = g.id) },
-                                enabled = g.id !in locked,
+                                onClick = { presenter.replacePiece(g.id) },
+                                enabled = !suggestion.pending && g.id !in locked,
                             ) {
                                 Text(localized("换这一件"))
                             }
                             TextButton(
-                                onClick = {
-                                    val pins = locked - g.id
-                                    val skips = excluded + g.id
-                                    lockedText = pins.joinToString(",")
-                                    excludedText = skips.joinToString(",")
-                                    generate(pins = pins, skips = skips)
-                                }
+                                onClick = { presenter.skip(g.id) },
+                                enabled = !suggestion.pending,
                             ) {
                                 Text(localized("本轮不选"), color = Muted)
                             }
@@ -297,9 +227,9 @@ fun InspirationScreen(
             ) {
                 ActionButton(
                     "换一套",
-                    { generate() },
+                    presenter::reroll,
                     Modifier.weight(1f),
-                    enabled = !state.busy,
+                    enabled = !state.busy && !suggestion.pending,
                     icon = "refresh",
                 )
                 ActionButton(
@@ -315,7 +245,7 @@ fun InspirationScreen(
                     },
                     Modifier.weight(1f),
                     secondary = true,
-                    enabled = !saved && !state.busy,
+                    enabled = !saved && !state.busy && !suggestion.pending,
                     icon = "check",
                 )
             }

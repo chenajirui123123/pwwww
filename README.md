@@ -4,9 +4,9 @@
 
 衣序是一款使用 **Kotlin + Jetpack Compose** 开发的本机离线 Android 衣橱应用。围绕快速录入、按位置找衣、可控随机搭配和旅行装箱设计，不要求每天登记穿着或洗衣服。
 
-当前版本：`2.0.0-alpha3` · 本机离线 · 支持男装、女装与中性款式
+架构分支版本 `2.0.0-alpha4` · 本机离线 · 支持男装、女装与中性款式
 
-[下载 Android 安装包](apk/Yixu-Light-2.0.0-alpha3-debug.apk?raw=true) · [查看操作录像](docs/screenshots-light/final/motion-light.mp4) · [验证记录](docs/轻量版验证记录.md)
+[下载 Android 安装包](apk/Yixu-Light-2.0.0-alpha4-debug.apk?raw=true) · [查看操作录像](docs/screenshots-light/final/motion-light.mp4) · [验证记录](docs/架构重构验证记录.md)
 
 ## 中文 / English
 
@@ -62,18 +62,13 @@ Choose **简体中文** or **English** on the welcome screen or in **My space �
 
 ## 软件架构
 
-本项目采用 **MVVM + 分层架构（Repository 接口与业务用例）**。Compose UI 接收操作，`WardrobeViewModel` 协调任务并发布 `StateFlow<AppState>`；领域层定义模型、规则与接口，数据层通过 `LocalWardrobeRepository` 接入现有 SQLite 数据源。语言设置也通过独立接口隔离本地存储。
+衣序采用 **MVVM + 分层架构**。应用共用一份衣橱快照，每次进入搭配页则拥有独立的筛选条件、锁定单品和候选结果。“换一套”在后台计算并更新预览，“收藏这套”才通过仓库写入本机 SQLite。
 
-[完整架构说明、依赖图和保存流程](docs/软件架构说明.md) · [架构重构验证记录](docs/架构重构验证记录.md)
+![衣序轻量版中文架构图](docs/architecture/衣序分层架构.png)
 
-```text
-ui → presentation → domain（接口与用例）
-                         ↑
-                    data（接口实现）
-MainActivity：组装并注入实现
-```
+`WardrobeViewModel` 管理共享衣橱操作。`InspirationPresenter` 管理当前搭配会话。领域层定义搭配规则和仓库接口，本地数据层实现接口。构建脚本通过 `scripts/check-architecture.py` 检查包之间的依赖方向。
 
-运行 `python3 scripts/check-architecture.py` 检查包依赖边界；构建脚本会自动执行。架构说明中还包含可用于课程展示的中英文讲解。
+[完整架构说明与课堂讲解](docs/软件架构说明.md) · [架构重构验证记录](docs/架构重构验证记录.md)
 
 ## 可以做什么
 
@@ -104,7 +99,7 @@ MainActivity：组装并注入实现
 
 ## 安装体验
 
-1. 在 Android 手机上下载 [Yixu-Light-2.0.0-alpha3-debug.apk](apk/Yixu-Light-2.0.0-alpha3-debug.apk?raw=true)。
+1. 在 Android 手机上下载 [Yixu-Light-2.0.0-alpha4-debug.apk](apk/Yixu-Light-2.0.0-alpha4-debug.apk?raw=true)。
 2. 根据系统提示允许本次安装，安装后打开“衣序轻量版”。
 3. 选择“直接开始我的衣橱”即可使用；也可选择“先逛逛示例衣橱”体验独立的演示空间。
 4. 如需密码保护，可在本机建立独立账号。无需部署服务器或注册在线账号。
@@ -167,7 +162,7 @@ Windows 使用 `gradlew.bat`。依赖已全部缓存时，可以追加 `--offlin
 ```text
 app/src/main/java/com/wardrobe/atelier/
 ├── MainActivity.kt       # 应用入口与依赖组装
-├── presentation/         # ViewModel、AppState、语言显示状态
+├── presentation/         # 共享衣橱状态、页面搭配会话、语言显示状态
 ├── data/                 # 本机存储、账号与加密备份
 ├── domain/               # 实体、业务用例、规则与 Repository 接口
 └── ui/                   # Compose 页面、设计组件与交互动画
@@ -190,7 +185,7 @@ docs/                     # 设计说明、截图、录像与验证记录
 
 ## 验证情况
 
-基础功能验证记录为 **2026-11-04**；2026-11-17 的中英文版本新增验证见上方记录。基础版结果：
+架构分支的回归结果见[架构重构验证记录](docs/架构重构验证记录.md)。基础功能验证记录为 **2026-11-04**；2026-11-17 的中英文版本新增验证见上方记录。基础版结果：
 
 | 检查 | 结果 |
 | --- | --- |
@@ -213,6 +208,6 @@ ANDROID_SERIAL=emulator-5556 ./scripts/verify-light-macos.sh
 
 ## 版本说明
 
-本仓库当前交付衣序轻量版，来自原版 `5d34771` 的独立开发分支；当前应用里程碑标签为 `light-v2.0.0-alpha3`。
+本仓库当前交付衣序轻量版，来自原版 `5d34771` 的独立开发分支；当前架构版本在 `architecture/layered-mvvm` 分支维护。
 
-`apk/` 中的 1.0 / 1.1 安装包，以及 `docs/测试记录.md` 和旧截图目录是保留的历史资料。体验当前版本请使用 **Yixu-Light-2.0.0-alpha3-debug.apk**，当前验证以轻量版记录为准。
+`apk/` 中的 1.0 / 1.1 安装包，以及 `docs/测试记录.md` 和旧截图目录是保留的历史资料。体验当前版本请使用 **Yixu-Light-2.0.0-alpha4-debug.apk**，本次验证见[架构重构验证记录](docs/架构重构验证记录.md)。

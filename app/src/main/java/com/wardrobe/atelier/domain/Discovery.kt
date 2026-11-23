@@ -101,6 +101,7 @@ object InspirationEngine {
         excluded: Set<Long> = emptySet(),
         seen: Set<String> = emptySet(),
         random: Random = Random.Default,
+        requiredCategory: String? = null,
     ): Inspiration {
         val available = wardrobe.filter { !it.archived && it.id !in excluded }
         require(locked.all { id -> available.any { it.id == id } }) { "锁定的衣物已归档或被排除，请先清除锁定" }
@@ -144,6 +145,7 @@ object InspirationEngine {
                         listOf("鞋履") +
                         (if (request.outerwear) listOf("外套") else emptyList()) +
                         (if (request.bag) listOf("包袋") else emptyList()) +
+                        listOfNotNull(requiredCategory) +
                         pins.map { it.category })
                     .distinct()
             val pieces =

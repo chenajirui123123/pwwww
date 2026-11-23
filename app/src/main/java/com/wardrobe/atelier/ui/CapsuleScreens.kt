@@ -20,10 +20,8 @@ import androidx.compose.ui.unit.*
 import com.wardrobe.atelier.R
 import com.wardrobe.atelier.domain.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 private fun decodeLooks(text: String): List<List<Long>> =
     text
@@ -180,15 +178,7 @@ fun CapsuleBuilder(state: AppState, vm: WardrobeViewModel, onBack: () -> Unit) {
                         scope.launch {
                             try {
                                 val result =
-                                    withContext(Dispatchers.Default) {
-                                        vm.generateCapsule(
-                                            state.data.garments,
-                                            count,
-                                            limit,
-                                            season,
-                                            outer,
-                                        )
-                                    }
+                                    vm.generateCapsule(state.data.garments, count, limit, season, outer)
                                 lookText =
                                     result.looks.joinToString(";") { row ->
                                         row.joinToString(",") { it.id.toString() }

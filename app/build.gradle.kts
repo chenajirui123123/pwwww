@@ -13,8 +13,8 @@ android {
                 if (providers.gradleProperty("isolatedPreview").isPresent) ".preview" else ""
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "2.0.0-alpha3"
+        versionCode = 6
+        versionName = "2.0.0-alpha4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures {

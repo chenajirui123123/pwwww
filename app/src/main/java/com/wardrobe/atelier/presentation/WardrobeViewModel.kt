@@ -16,7 +16,6 @@ import kotlinx.coroutines.withContext
 class WardrobeViewModel(
     private val repository: WardrobeRepository,
     private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
-    private val outfitUseCase: GenerateOutfitUseCase = GenerateOutfitUseCase(),
     private val capsuleUseCase: GenerateCapsuleUseCase = GenerateCapsuleUseCase(),
 ) : androidx.lifecycle.ViewModel() {
     private val mutable = MutableStateFlow(AppState())
@@ -170,8 +169,6 @@ class WardrobeViewModel(
         if (registering) register(username, password, nickname, "欢迎来到衣序")
         else login(username, password, "欢迎来到衣序")
     }
-    fun generateOutfit(wardrobe: List<Garment>, request: InspirationRequest, locked: Set<Long>, excluded: Set<Long>, seen: Set<String>, currentPieces: List<Garment> = emptyList(), replace: Long? = null): Inspiration =
-        outfitUseCase(wardrobe, request, locked, excluded, seen, currentPieces, replace)
     suspend fun generateCapsule(wardrobe: List<Garment>, count: Int, limit: Int, season: String, outerwear: Boolean): CapsuleResult =
         withContext(Dispatchers.Default) { capsuleUseCase(wardrobe, count, limit, season, outerwear) }
 
