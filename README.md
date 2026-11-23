@@ -4,9 +4,9 @@
 
 衣序是一款使用 **Kotlin + Jetpack Compose** 开发的本机离线 Android 衣橱应用。围绕快速录入、按位置找衣、可控随机搭配和旅行装箱设计，不要求每天登记穿着或洗衣服。
 
-架构分支版本 `2.0.0-alpha4` · 本机离线 · 支持男装、女装与中性款式
+架构分支版本 `2.0.0-alpha5` · 本机离线 · 支持男装、女装与中性款式
 
-[下载 Android 安装包](apk/Yixu-Light-2.0.0-alpha4-debug.apk?raw=true) · [查看操作录像](docs/screenshots-light/final/motion-light.mp4) · [验证记录](docs/架构重构验证记录.md)
+[下载 Android 安装包](apk/Yixu-Light-2.0.0-alpha5-debug.apk?raw=true) · [查看操作录像](docs/screenshots-light/final/motion-light.mp4) · [验证记录](docs/架构重构验证记录.md)
 
 ## 中文 / English
 
@@ -62,11 +62,11 @@ Choose **简体中文** or **English** on the welcome screen or in **My space �
 
 ## 软件架构
 
-衣序采用 **MVVM + 分层架构**。应用共用一份衣橱快照，每次进入搭配页则拥有独立的筛选条件、锁定单品和候选结果。“换一套”在后台计算并更新预览，“收藏这套”才通过仓库写入本机 SQLite。
+衣序采用 **分层 MVVM**。账号页通过成员 A 的 `AccountController` 处理登录、注册和改密。衣橱 ViewModel 与账号控制器共用一个 `OperationCoordinator`，一起发布当前账号及其衣橱。切换账号和保存衣物共用同一个忙碌状态，读取失败后可以只重试读取。
 
-![衣序轻量版中文架构图](docs/architecture/衣序分层架构.png)
+![衣序轻量版中文架构图](docs/architecture/衣序分层架构_账号整合版.png)
 
-`WardrobeViewModel` 管理共享衣橱操作。`InspirationPresenter` 管理当前搭配会话。领域层定义搭配规则和仓库接口，本地数据层实现接口。构建脚本通过 `scripts/check-architecture.py` 检查包之间的依赖方向。
+单个搭配页面用 `InspirationPresenter` 保存筛选、锁定和候选单品。点“换一套”只更新预览，点“收藏这套”才经仓库写入本机数据库。
 
 [完整架构说明与课堂讲解](docs/软件架构说明.md) · [架构重构验证记录](docs/架构重构验证记录.md)
 
@@ -99,7 +99,7 @@ Choose **简体中文** or **English** on the welcome screen or in **My space �
 
 ## 安装体验
 
-1. 在 Android 手机上下载 [Yixu-Light-2.0.0-alpha4-debug.apk](apk/Yixu-Light-2.0.0-alpha4-debug.apk?raw=true)。
+1. 在 Android 手机上下载 [Yixu-Light-2.0.0-alpha5-debug.apk](apk/Yixu-Light-2.0.0-alpha5-debug.apk?raw=true)。
 2. 根据系统提示允许本次安装，安装后打开“衣序轻量版”。
 3. 选择“直接开始我的衣橱”即可使用；也可选择“先逛逛示例衣橱”体验独立的演示空间。
 4. 如需密码保护，可在本机建立独立账号。无需部署服务器或注册在线账号。
@@ -162,7 +162,7 @@ Windows 使用 `gradlew.bat`。依赖已全部缓存时，可以追加 `--offlin
 ```text
 app/src/main/java/com/wardrobe/atelier/
 ├── MainActivity.kt       # 应用入口与依赖组装
-├── presentation/         # 共享衣橱状态、页面搭配会话、语言显示状态
+├── presentation/         # 账号控制器、共享衣橱状态、页面搭配会话、语言显示状态
 ├── data/                 # 本机存储、账号与加密备份
 ├── domain/               # 实体、业务用例、规则与 Repository 接口
 └── ui/                   # Compose 页面、设计组件与交互动画
@@ -210,4 +210,4 @@ ANDROID_SERIAL=emulator-5556 ./scripts/verify-light-macos.sh
 
 本仓库当前交付衣序轻量版，来自原版 `5d34771` 的独立开发分支；当前架构版本在 `architecture/layered-mvvm` 分支维护。
 
-`apk/` 中的 1.0 / 1.1 安装包，以及 `docs/测试记录.md` 和旧截图目录是保留的历史资料。体验当前版本请使用 **Yixu-Light-2.0.0-alpha4-debug.apk**，本次验证见[架构重构验证记录](docs/架构重构验证记录.md)。
+`apk/` 中的 1.0 / 1.1 安装包，以及 `docs/测试记录.md` 和旧截图目录是保留的历史资料。体验当前版本请使用 **Yixu-Light-2.0.0-alpha5-debug.apk**，本次验证见[架构重构验证记录](docs/架构重构验证记录.md)。

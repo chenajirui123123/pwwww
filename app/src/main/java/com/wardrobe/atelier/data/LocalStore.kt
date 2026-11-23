@@ -124,14 +124,12 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
     private fun b64(b: ByteArray) = Base64.encodeToString(b, Base64.NO_WRAP)
 
     private fun signIn(id: Long) {
-        signedIn = id
         check(prefs.edit().putLong("owner", id).commit()) { "无法保存登录状态" }
+        signedIn = id
     }
 
     fun register(username: String, pass: String, nickname: String): Account {
-        require(username.trim().lowercase() !in setOf("wardrobe_demo", "wardrobe_local")) {
-            "此账号名称为内置衣橱保留，请选择其他名称"
-        }
+        AccountRules.validateNewAccount(username, pass, nickname)
         return createAccount(username, pass, nickname)
     }
 
@@ -206,9 +204,6 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
 
     private fun createAccount(username: String, pass: String, nickname: String): Account {
         val u = username.trim().lowercase()
-        require(u.matches(Regex("[a-z0-9_]{3,24}"))) { "账号需为 3–24 位字母、数字或下划线" }
-        require(pass.length in 8..64) { "密码需为 8–64 位字符" }
-        require(nickname.trim().length in 1..20) { "昵称需为 1–20 个字" }
         require(query("accounts", "username=?", arrayOf(u)) { it.l("id") }.isEmpty()) {
             "这个账号已存在，请直接登录"
         }
@@ -230,6 +225,7 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
     }
 
     fun login(username: String, pass: String): Account {
+        AccountRules.validateLogin(username, pass)
         val entry =
             query("accounts", "username=?", arrayOf(username.trim().lowercase())) {
                     Triple(it.l("id"), it.s("salt"), it.s("hash"))
@@ -249,12 +245,12 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
     }
 
     fun logout() {
-        signedIn = 0
         check(prefs.edit().remove("owner").commit()) { "无法保存退出状态，请重试" }
+        signedIn = 0
     }
 
     fun rename(nickname: String) {
-        require(nickname.trim().length in 1..20) { "昵称需为 1–20 个字" }
+        AccountRules.validateNickname(nickname)
         writableDatabase.update(
             "accounts",
             values("nickname" to nickname.trim()),
@@ -265,7 +261,7 @@ class LocalStore(private val context: Context, dbName: String = "wardrobe.db") :
 
     fun changePassword(old: String, new: String) {
         val a = account() ?: error("请先登录")
-        require(new.length in 8..64) { "新密码需为 8–64 位字符" }
+        AccountRules.validateNewPassword(old, new)
         login(a.username, old)
         val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
         writableDatabase.update(

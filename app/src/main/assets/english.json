@@ -593,5 +593,12 @@
   "需要\n单品": "Pieces\nneeded",
   "记得衣服\n不必记流水账": "Your clothes.\nNot a chore.",
   "周末轻装": "Weekend getaway",
-  "点衣物可锁定": "Tap a piece to lock"
+  "点衣物可锁定": "Tap a piece to lock",
+  "确认密码": "Confirm password",
+  "确认新密码": "Confirm new password",
+  "两次输入的密码不一致": "The passwords do not match.",
+  "请输入账号和密码": "Enter your account and password.",
+  "请输入原密码": "Enter your current password.",
+  "暂时无法读取衣橱，请重新读取。": "Your wardrobe could not be loaded. Try loading it again.",
+  "重新读取衣橱": "Reload wardrobe"
 }

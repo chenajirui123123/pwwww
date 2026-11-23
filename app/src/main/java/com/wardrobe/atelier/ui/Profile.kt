@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -21,9 +22,10 @@ import com.wardrobe.atelier.domain.*
 @Composable
 fun ProfileScreen(
     state: AppState,
-    vm: WardrobeViewModel,
+    actions: AccountActions,
     onBack: () -> Unit,
     navigate: (String) -> Unit,
+    backupContent: @Composable () -> Unit,
 ) {
     val account = state.account ?: return
     var rename by remember { mutableStateOf(false) }
@@ -32,6 +34,7 @@ fun ProfileScreen(
     var passwordDialog by remember { mutableStateOf(false) }
     var oldPass by remember { mutableStateOf("") }
     var newPass by remember { mutableStateOf("") }
+    var confirmPass by remember { mutableStateOf("") }
     Column(Modifier.fillMaxSize()) {
         DetailTop("个人中心", onBack, "PERSONAL / SPACE")
         LazyColumn(
@@ -82,8 +85,8 @@ fun ProfileScreen(
             item { ProfileRow("care", "洗护历史", "每一次状态变化都有记录") { navigate("carehistory") } }
             item { ProfileRow("archive", "收纳位置", "管理衣柜、鞋架与收纳空间") { navigate("locations") } }
             if (account.username !in setOf("wardrobe_demo", "wardrobe_local"))
-                item { ProfileRow("user", "修改密码", "保护本机账号") { passwordDialog = true } }
-            item { BackupPanel(vm, state) }
+                item { ProfileRow("user", "修改密码", "保护本机账号", Modifier.testTag("profile.password.open")) { passwordDialog = true } }
+            item { backupContent() }
             item {
                 Column(
                     Modifier.background(Color.White, Panel).padding(18.dp),
@@ -103,7 +106,7 @@ fun ProfileScreen(
                 }
             }
             item {
-                ActionButton("退出当前账号", { logout = true }, Modifier.fillMaxWidth(), secondary = true)
+                ActionButton("退出当前账号", { logout = true }, Modifier.fillMaxWidth().testTag("profile.logout.open"), secondary = true, enabled = !state.busy)
             }
         }
     }
@@ -118,13 +121,15 @@ fun ProfileScreen(
                     { nick = it.take(20) },
                     singleLine = true,
                     label = { Text(localized("昵称")) },
+                    modifier = Modifier.testTag("profile.rename.input"),
                 )
             },
             dismissButton = { TextButton(onClick = { rename = false }) { Text(localized("取消")) } },
             confirmButton = {
                 TextButton(
                     enabled = !state.busy,
-                    onClick = { vm.rename(nick, success = "昵称已更新", after = { rename = false }) },
+                    onClick = { actions.updateNickname(nick) { rename = false } },
+                    modifier = Modifier.testTag("profile.rename.save"),
                 ) {
                     Text(localized("保存"))
                 }
@@ -136,6 +141,7 @@ fun ProfileScreen(
                 passwordDialog = false
                 oldPass = ""
                 newPass = ""
+                confirmPass = ""
             },
             shape = Panel,
             title = { Text(localized("修改密码")) },
@@ -146,6 +152,7 @@ fun ProfileScreen(
                         { oldPass = it },
                         singleLine = true,
                         label = { Text(localized("原密码")) },
+                        modifier = Modifier.testTag("profile.password.old"),
                         visualTransformation = PasswordVisualTransformation(),
                     )
                     AtelierTextField(
@@ -153,6 +160,15 @@ fun ProfileScreen(
                         { newPass = it },
                         singleLine = true,
                         label = { Text(localized("新密码，至少 8 位")) },
+                        modifier = Modifier.testTag("profile.password.new"),
+                        visualTransformation = PasswordVisualTransformation(),
+                    )
+                    AtelierTextField(
+                        confirmPass,
+                        { confirmPass = it },
+                        singleLine = true,
+                        label = { Text(localized("确认新密码")) },
+                        modifier = Modifier.testTag("profile.password.confirm"),
                         visualTransformation = PasswordVisualTransformation(),
                     )
                 }
@@ -163,6 +179,7 @@ fun ProfileScreen(
                         passwordDialog = false
                         oldPass = ""
                         newPass = ""
+                        confirmPass = ""
                     }
                 ) {
                     Text(localized("取消"))
@@ -171,12 +188,14 @@ fun ProfileScreen(
             confirmButton = {
                 TextButton(
                     enabled = !state.busy,
+                    modifier = Modifier.testTag("profile.password.save"),
                     onClick = {
-                        vm.changePassword(oldPass, newPass, success = "密码已修改", after = {
-                                passwordDialog = false
-                                oldPass = ""
-                                newPass = ""
-                            })
+                        actions.changePassword(oldPass, newPass, confirmPass) {
+                            passwordDialog = false
+                            oldPass = ""
+                            newPass = ""
+                            confirmPass = ""
+                        }
                     },
                 ) {
                     Text(localized("保存"))
@@ -186,14 +205,14 @@ fun ProfileScreen(
     if (logout)
         ConfirmDialog("退出当前账号？", "本机衣物与历史记录仍然保留，再次进入同一空间即可查看。", { logout = false }) {
             logout = false
-            vm.logout(success = "已退出登录", after = {})
+            actions.logout()
         }
 }
 
 @Composable
-fun ProfileRow(icon: String, title: String, subtitle: String, onClick: () -> Unit) {
+fun ProfileRow(icon: String, title: String, subtitle: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth()
+        modifier.fillMaxWidth()
             .background(Color.White, SmallPanel)
             .border(1.dp, Line, SmallPanel)
             .clickable(onClick = onClick)

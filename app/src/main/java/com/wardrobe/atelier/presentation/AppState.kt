@@ -9,5 +9,6 @@ data class AppState(
     val busy: Boolean = false,
     val error: String? = null,
     val message: String? = null,
+    val needsReload: Boolean = false,
 )
 

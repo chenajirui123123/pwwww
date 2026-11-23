@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -86,11 +87,18 @@ fun WardrobeApp(vm: WardrobeViewModel) {
     }
     AtelierTheme {
         Surface(Modifier.fillMaxSize(), color = Paper) {
-            if (!state.loaded)
+            if (!state.loaded || (state.account != null && knownOwner != state.account?.id))
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Teal)
                 }
-            else if (state.account == null) LightWelcome(vm, state.busy, sharedImage != null)
+            else if (state.needsReload)
+                Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text(localized("暂时无法读取衣橱，请重新读取。"))
+                        ActionButton("重新读取衣橱", vm::refreshSession, Modifier.fillMaxWidth(), enabled = !state.busy)
+                    }
+                }
+            else if (state.account == null) LightWelcome(vm.accountActions, state.busy, sharedImage != null)
             else {
                 BackHandler(route.isNotEmpty()) { goBack() }
                 Scaffold(
@@ -219,7 +227,7 @@ fun WardrobeApp(vm: WardrobeViewModel) {
                         },
                     )
             }
-            if (state.error != null)
+            if (!state.needsReload && state.error != null)
                 AlertDialog(
                     onDismissRequest = vm::clearError,
                     shape = Panel,
@@ -256,10 +264,11 @@ private fun BrandBar(onProfile: () -> Unit) {
 }
 
 @Composable
-fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
+fun AuthScreen(actions: AccountActions, busy: Boolean) {
     var register by rememberSaveable { mutableStateOf(false) }
     var username by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmation by remember { mutableStateOf("") }
     var nickname by rememberSaveable { mutableStateOf("") }
     Column(
         Modifier.fillMaxSize()
@@ -277,7 +286,7 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
             Spacer(Modifier.weight(1f))
             Numeral("01", size = 32.sp, color = DeepTeal)
         }
-        Hero(large = true)
+        Hero(large = !register)
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(localized(if (register) "建立你的衣橱" else "欢迎回到衣序"),
                 fontSize = 25.sp,
@@ -292,7 +301,7 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
             label = { Text(localized("账号")) },
             placeholder = { Text(localized("3–24 位字母、数字或下划线")) },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("account.username"),
             shape = SmallPanel,
         )
         if (register)
@@ -301,7 +310,7 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
                 { nickname = it },
                 label = { Text(localized("昵称")) },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("account.nickname"),
                 shape = SmallPanel,
             )
         AtelierTextField(
@@ -311,23 +320,38 @@ fun AuthScreen(vm: WardrobeViewModel, busy: Boolean) {
             placeholder = { Text(localized("至少 8 位字符")) },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("account.password"),
             shape = SmallPanel,
         )
+        if (register)
+            AtelierTextField(
+                confirmation,
+                { confirmation = it },
+                label = { Text(localized("确认密码")) },
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth().testTag("account.confirmPassword"),
+                shape = SmallPanel,
+            )
         ActionButton(
             if (busy) "正在打开衣橱…" else if (register) "注册并进入" else "登录",
             {
-                vm.authenticate(register, username, password, nickname)
+                if (register) actions.register(username, password, nickname, confirmation)
+                else actions.login(username, password)
             },
-            Modifier.fillMaxWidth(),
+            Modifier.fillMaxWidth().testTag("account.submit"),
             enabled = !busy,
             icon = "arrow",
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            TextButton(onClick = { register = !register }, enabled = !busy) {
+            TextButton(onClick = {
+                register = !register
+                password = ""
+                confirmation = ""
+            }, enabled = !busy, modifier = Modifier.testTag("account.toggleMode")) {
                 Text(localized(if (register) "已有账号？去登录" else "还没有账号？创建一个"))
             }
-            TextButton(onClick = { vm.demo(success = "已打开示例衣橱", after = {}) }, enabled = !busy) {
+            TextButton(onClick = { actions.openDemoWardrobe("已打开示例衣橱") }, enabled = !busy) {
                 Text(localized("体验示例衣橱"), color = Pink)
             }
         }

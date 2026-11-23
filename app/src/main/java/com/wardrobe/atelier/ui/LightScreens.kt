@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -31,7 +32,7 @@ import com.wardrobe.atelier.domain.*
 private fun parseIds(value: String) = value.split(',').mapNotNull { it.toLongOrNull() }.toSet()
 
 @Composable
-fun LightWelcome(vm: WardrobeViewModel, busy: Boolean, incomingImage: Boolean = false) {
+fun LightWelcome(actions: AccountActions, busy: Boolean, incomingImage: Boolean = false) {
     var accounts by rememberSaveable { mutableStateOf(false) }
     if (accounts) {
         BackHandler { accounts = false }
@@ -39,7 +40,7 @@ fun LightWelcome(vm: WardrobeViewModel, busy: Boolean, incomingImage: Boolean = 
             TextButton(onClick = { accounts = false }, modifier = Modifier.statusBarsPadding()) {
                 Text(localized("← 返回轻量入口"))
             }
-            Box(Modifier.weight(1f)) { AuthScreen(vm, busy) }
+            Box(Modifier.weight(1f)) { AuthScreen(actions, busy) }
         }
         return
     }
@@ -79,19 +80,19 @@ fun LightWelcome(vm: WardrobeViewModel, busy: Boolean, incomingImage: Boolean = 
         Text(localized("知道衣服放哪儿，试试没想到的组合。\n不用每天登记穿着，也不用记录洗衣服。"), color = Muted, lineHeight = 24.sp)
         ActionButton(
             "直接开始我的衣橱",
-            { vm.openLocalWardrobe(success = null, after = {}) },
+            { actions.openLocalWardrobe() },
             Modifier.fillMaxWidth(),
             enabled = !busy,
             icon = "arrow",
         )
         ActionButton(
             "先逛逛示例衣橱",
-            { vm.demo(success = null, after = {}) },
+            { actions.openDemoWardrobe() },
             Modifier.fillMaxWidth(),
             secondary = true,
             enabled = !busy,
         )
-        TextButton(onClick = { accounts = true }, enabled = !busy) { Text(localized("已有独立账号？登录或注册")) }
+        TextButton(onClick = { accounts = true }, enabled = !busy, modifier = Modifier.testTag("welcome.login")) { Text(localized("已有独立账号？登录或注册")) }
         Text(localized("本机空间无需密码，打开这台设备即可进入。数据只保存在本机，可在“我的”导出加密备份。"),
             color = Muted,
             fontSize = 12.sp,

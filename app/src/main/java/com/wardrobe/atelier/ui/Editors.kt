@@ -120,7 +120,7 @@ fun DetailRouter(
         "calendar" -> OptionalTool("穿搭日历", onBack) { CalendarScreen(data, navigate, vm) }
         "care" -> OptionalTool("洗护记录", onBack) { CareScreen(data, navigate, vm) }
         "statistics" -> OptionalTool("主动记录的统计", onBack) { StatsScreen(data, navigate) }
-        "profile" -> ProfileScreen(state, vm, onBack, navigate)
+        "profile" -> ProfileScreen(state, vm.accountActions, onBack, navigate) { BackupPanel(vm, state) }
         "locations" -> LocationScreen(data, vm, onBack)
         "history" -> HistoryScreen(data, onBack, navigate)
         "carehistory" -> CareHistory(data, onBack, id)

@@ -5,7 +5,7 @@ import re
 root = Path(__file__).resolve().parents[1] / 'app/src/main/java/com/wardrobe/atelier'
 violations = []
 rules = {
-    'ui': [r'com\.wardrobe\.atelier\.data', r'\bLocalStore\b', r'getSharedPreferences\s*\(', r'\bSQLite\w*\b', r'\bvm\.perform\s*\(', r'\bGenerate(?:Outfit|Capsule)UseCase\b', r'\b(?:InspirationEngine|CapsuleEngine)\.generate\s*\('],
+    'ui': [r'com\.wardrobe\.atelier\.data', r'\bLocalStore\b', r'getSharedPreferences\s*\(', r'\bSQLite\w*\b', r'\bvm\.perform\s*\(', r'\bGenerate(?:Outfit|Capsule)UseCase\b', r'\b(?:OperationCoordinator|AccountController|AccountRepository)\b', r'\b(?:InspirationEngine|CapsuleEngine)\.generate\s*\('],
     'presentation': [r'com\.wardrobe\.atelier\.(?:ui|data)\b', r'\bLocalStore\b', r'getSharedPreferences\s*\(', r'\bSQLite\w*\b'],
     'domain': [r'^import (?:android\.|androidx\.)', r'com\.wardrobe\.atelier\.(?:ui|presentation|data)\b'],
     'data': [r'com\.wardrobe\.atelier\.(?:ui|presentation)\b'],

@@ -4,3 +4,4 @@
 cc2d8b604ff4a539f242606ebcb3f735eca6d2de10e74586633df1b9306fdd79  Yixu-Light-2.0.0-alpha2-debug.apk
 e67b109965fef70c07ca29009e6276829e7b2eafda312caa9eed94b26f80ec3c  Yixu-Light-2.0.0-alpha3-debug.apk
 ff76fc5456f2f4b4d7c34209406cc96644b69bca9f43b8bb8cd6af9024bc548c  Yixu-Light-2.0.0-alpha4-debug.apk
+b8e713fff497f6989e98a03c5f8814f5906722e05aab3bf123572077f28da3fd  Yixu-Light-2.0.0-alpha5-debug.apk

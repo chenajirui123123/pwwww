@@ -6,22 +6,25 @@ import com.wardrobe.atelier.domain.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
  * Coordinates user commands against an injected persistence port.
- * UI receives immutable snapshots; only this class may schedule repository operations.
+ * UI receives immutable snapshots; account and wardrobe writes share one operation coordinator.
  */
 class WardrobeViewModel(
     private val repository: WardrobeRepository,
-    private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
+    ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
     private val capsuleUseCase: GenerateCapsuleUseCase = GenerateCapsuleUseCase(),
 ) : androidx.lifecycle.ViewModel() {
-    private val mutable = MutableStateFlow(AppState())
-    val state = mutable.asStateFlow()
+    private val operations = OperationCoordinator(viewModelScope, {
+        val owner = repository.account()
+        SessionSnapshot(owner, if (owner == null) Wardrobe() else repository.snapshot())
+    }, ioDispatcher)
+    val state = operations.state
     private val incomingImage = MutableStateFlow<Uri?>(null)
     val sharedImage = incomingImage.asStateFlow()
+    val accountActions: AccountActions = AccountController(repository, operations) { incomingImage.value = null }
 
     fun queueSharedImage(uri: Uri) {
         incomingImage.value = uri
@@ -31,53 +34,18 @@ class WardrobeViewModel(
         if (incomingImage.value == uri) incomingImage.value = null
     }
 
-    init {
-        perform<Unit>(null, {}, {})
-    }
+    init { refreshSession() }
+
+    fun refreshSession() = operations.refresh()
+    fun error(text: String) = operations.error(text)
+    fun notify(text: String) = operations.notify(text)
+    fun clearError() = operations.clearError()
+    fun clearMessage() = operations.clearMessage()
 
     private fun <T> perform(success: String?, after: (T) -> Unit, action: WardrobeRepository.() -> T) {
-        if (mutable.value.busy) return
-        mutable.value = mutable.value.copy(busy = true, error = null)
-        viewModelScope.launch {
-            try {
-                val result = withContext(ioDispatcher) {
-                    val value = repository.action()
-                    val account = repository.account()
-                    Triple(value, account, if (account != null) repository.snapshot() else Wardrobe())
-                }
-                mutable.value = AppState(true, result.second, result.third, false, null, success)
-                after(result.first)
-            } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                throw cancelled
-            } catch (e: Exception) {
-                mutable.value = mutable.value.copy(busy = false, loaded = true, error = e.message ?: "操作失败，请重试")
-            }
-        }
+        operations.execute(success, after) { repository.action() }
     }
 
-
-    fun error(text: String) {
-        mutable.value = mutable.value.copy(error = text)
-    }
-
-    fun notify(text: String) {
-        mutable.value = mutable.value.copy(message = text)
-    }
-
-    fun clearError() {
-        mutable.value = mutable.value.copy(error = null)
-    }
-
-    fun clearMessage() {
-        mutable.value = mutable.value.copy(message = null)
-    }
-
-    fun register(username: String, pass: String, nickname: String, success: String? = null, after: () -> Unit = {}) {
-        perform(success, { _: Account -> after() }) { register(username, pass, nickname) }
-    }
-    fun openLocalWardrobe(success: String? = null, after: () -> Unit = {}) {
-        perform(success, { _: Account -> after() }) { openLocalWardrobe() }
-    }
     fun saveQuickGarment(g: Garment, success: String? = null, after: () -> Unit = {}) {
         perform(success, { _: Long -> after() }) { saveQuickGarment(g) }
     }
@@ -92,18 +60,6 @@ class WardrobeViewModel(
     }
     fun moveGarments(ids: List<Long>, location: String, success: String? = null, after: () -> Unit = {}) {
         perform(success, { _: Unit -> after() }) { moveGarments(ids, location) }
-    }
-    fun login(username: String, pass: String, success: String? = null, after: () -> Unit = {}) {
-        perform(success, { _: Account -> after() }) { login(username, pass) }
-    }
-    fun logout(success: String? = null, after: () -> Unit = {}) {
-        perform(success, { _: Unit -> after() }) { logout() }
-    }
-    fun rename(nickname: String, success: String? = null, after: () -> Unit = {}) {
-        perform(success, { _: Unit -> after() }) { rename(nickname) }
-    }
-    fun changePassword(old: String, new: String, success: String? = null, after: () -> Unit = {}) {
-        perform(success, { _: Unit -> after() }) { changePassword(old, new) }
     }
     fun saveCapsule(c: Capsule, success: String? = null, after: () -> Unit = {}) {
         perform(success, { _: Long -> after() }) { saveCapsule(c) }
@@ -156,18 +112,11 @@ class WardrobeViewModel(
     fun importImage(uri: Uri, success: String? = null, after: (String) -> Unit = {}) {
         perform(success, after) { importImage(uri.toString()) }
     }
-    fun demo(success: String? = null, after: () -> Unit = {}) {
-        perform(success, { _: Account -> after() }) { demo() }
-    }
     fun exportBackup(uri: Uri, passphrase: String, success: String? = null, after: () -> Unit = {}) {
         perform(success, { _: Unit -> after() }) { exportBackup(uri.toString(), passphrase) }
     }
     fun importBackup(uri: Uri, passphrase: String, success: String? = null, after: () -> Unit = {}) {
         perform(success, { _: Unit -> after() }) { importBackup(uri.toString(), passphrase) }
-    }
-    fun authenticate(registering: Boolean, username: String, password: String, nickname: String) {
-        if (registering) register(username, password, nickname, "欢迎来到衣序")
-        else login(username, password, "欢迎来到衣序")
     }
     suspend fun generateCapsule(wardrobe: List<Garment>, count: Int, limit: Int, season: String, outerwear: Boolean): CapsuleResult =
         withContext(Dispatchers.Default) { capsuleUseCase(wardrobe, count, limit, season, outerwear) }

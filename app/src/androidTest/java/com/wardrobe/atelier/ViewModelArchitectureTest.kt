@@ -22,6 +22,7 @@ class ViewModelArchitectureTest {
         var entered: CountDownLatch? = null
         var release: CountDownLatch? = null
         val saves = AtomicInteger()
+        val logouts = AtomicInteger()
         var closed = false
         val repository = Proxy.newProxyInstance(
             WardrobeRepository::class.java.classLoader,
@@ -39,6 +40,7 @@ class ViewModelArchitectureTest {
                     data = data.copy(garments = listOf(g))
                     1L
                 }
+                "logout" -> { logouts.incrementAndGet(); Unit }
                 "close" -> { closed = true; null }
                 else -> error("Unexpected repository call: ${method.name}")
             }
@@ -102,6 +104,19 @@ class ViewModelArchitectureTest {
             assertEquals("Validation failed", vm.state.value.error)
             assertFalse(vm.state.value.busy)
             assertFalse(navigated)
+        }
+    }
+
+    @Test fun accountAndWardrobeCommandsShareOneBusyState() {
+        val fake = Fake().apply { entered = CountDownLatch(1); release = CountDownLatch(1) }
+        withModel(fake) { vm ->
+            main { vm.saveGarment(Garment(name = "Current owner")) }
+            assertTrue(fake.entered!!.await(10, TimeUnit.SECONDS))
+            main { vm.accountActions.logout() }
+            fake.release!!.countDown()
+            await { !vm.state.value.busy }
+            assertEquals(0, fake.logouts.get())
+            assertEquals(1, fake.saves.get())
         }
     }
 
